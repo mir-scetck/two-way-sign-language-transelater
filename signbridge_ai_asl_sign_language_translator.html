@@ -1,0 +1,2655 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SignBridge AI | Interactive ASL Sign Language Translator</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Cairo -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Cairo', 'sans-serif'],
+          },
+          colors: {
+            brandIndigo: '#4f46e5',
+            brandSky: '#0ea5e9',
+            brandTeal: '#14b8a6',
+            brandPink: '#f43f5e',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --bg-page: #f5f7ff;
+      --bg-card: #ffffff;
+      --bg-subcard: #f0f4ff;
+      --bg-stage: #eef2ff;
+      --text-main: #1e1b4b;
+      --text-muted: #475569;
+      --border-card: #dbe4ff;
+    }
+
+    html.dark {
+      --bg-page: #13122b;
+      --bg-card: #1d1b3f;
+      --bg-subcard: #151432;
+      --bg-stage: #111028;
+      --text-main: #f8fafc;
+      --text-muted: #cbd5e1;
+      --border-card: #333066;
+    }
+
+    body {
+      font-family: 'Cairo', sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      overflow-x: hidden;
+      transition: background-color 0.35s ease, color 0.35s ease;
+    }
+
+    .theme-card {
+      background-color: var(--bg-card);
+      border-color: var(--border-card);
+      transition: all 0.3s ease;
+    }
+
+    .theme-subcard {
+      background-color: var(--bg-subcard);
+      border-color: var(--border-card);
+      transition: all 0.3s ease;
+    }
+
+    .theme-stage {
+      background: radial-gradient(circle at 50% 42%, rgba(99, 102, 241, 0.16) 0%, var(--bg-stage) 78%);
+      border-color: var(--border-card);
+    }
+
+    .theme-text-muted {
+      color: var(--text-muted);
+    }
+
+    .hero-gradient {
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 38%, #0ea5e9 75%, #14b8a6 100%);
+    }
+
+    .glass-stat {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+    }
+
+    .teal-accent-card {
+      position: relative;
+      overflow: hidden;
+    }
+    .teal-accent-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 7px;
+      height: 100%;
+      background: linear-gradient(to bottom, #38bdf8, #14b8a6);
+      border-top-right-radius: 1rem;
+      border-bottom-right-radius: 1rem;
+    }
+
+    .avatar-smooth {
+      transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes pulseRing {
+      0% { transform: scale(0.92); opacity: 0.75; }
+      70% { transform: scale(1.18); opacity: 0; }
+      100% { transform: scale(1.18); opacity: 0; }
+    }
+    .pulse-ring {
+      animation: pulseRing 2s infinite;
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-page);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #818cf8;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #4f46e5;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+
+  <!-- Toast Notification Box -->
+  <div id="toastContainer" class="fixed bottom-6 left-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Top Sticky Navigation Bar -->
+  <header class="sticky top-0 z-40 bg-white/90 dark:bg-[#191736]/95 backdrop-blur-md border-b border-indigo-100 dark:border-white/10 shadow-sm transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-5 lg:gap-8">
+        <a href="#" class="flex items-center gap-2 text-lg sm:text-xl font-black tracking-tight text-indigo-600 dark:text-indigo-300 hover:opacity-85 transition">
+          <span>SignBridge AI</span>
+          <span class="text-2xl">🤟</span>
+        </a>
+        <nav class="hidden md:flex items-center gap-6 text-sm font-bold text-slate-600 dark:text-slate-200">
+          <a href="#idea" class="hover:text-indigo-600 dark:hover:text-teal-300 transition">الفكرة</a>
+          <a href="#ai-role" class="hover:text-indigo-600 dark:hover:text-teal-300 transition">دور الذكاء الاصطناعي</a>
+          <a href="#simulator" class="hover:text-indigo-600 dark:hover:text-teal-300 transition">جرّب المحاكاة (ASL)</a>
+          <a href="#benefits" class="hover:text-indigo-600 dark:hover:text-teal-300 transition">المزايا</a>
+        </nav>
+      </div>
+
+      <!-- Utilities (Strictly English ASL Engine - Refined Clean Header) -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <span class="hidden sm:flex items-center gap-1.5 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200 border border-emerald-400/40 px-3.5 py-1.5 rounded-full text-xs font-extrabold shadow-sm">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>ASL Visual Interpreter Engine</span>
+        </span>
+
+        <button onclick="toggleThemeMode()" id="themeToggleBtn" class="flex items-center gap-1.5 bg-slate-100 dark:bg-indigo-900/60 hover:bg-indigo-100 dark:hover:bg-indigo-800 text-slate-800 dark:text-indigo-100 border border-slate-200 dark:border-indigo-500/40 px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-bold transition shadow-sm" title="تغيير المظهر">
+          <span id="themeToggleIcon">🌙</span>
+          <span id="themeToggleText" class="hidden sm:inline">وضع ليلي</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-gradient py-16 sm:py-24 px-4 text-center relative overflow-hidden shadow-lg">
+    <div class="absolute -top-20 -right-20 w-80 h-80 bg-white/15 rounded-full blur-2xl pointer-events-none"></div>
+    <div class="absolute -bottom-20 -left-20 w-80 h-80 bg-teal-200/20 rounded-full blur-2xl pointer-events-none"></div>
+
+    <div class="max-w-3xl mx-auto relative z-10 flex flex-col items-center">
+      <div class="w-24 h-24 rounded-3xl bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center text-5xl sm:text-6xl mb-6 shadow-xl select-none animate-bounce">
+        🤟
+      </div>
+
+      <h1 class="text-4xl sm:text-6xl font-black text-white tracking-tight mb-5 drop-shadow">
+        SignBridge AI
+      </h1>
+
+      <p class="text-base sm:text-xl text-white/95 leading-relaxed max-w-2xl mb-9 font-semibold">
+        نظام مترجم بلغة الإشارة الأمريكية (ASL) ثنائي الاتجاه في الأماكن العامة، يجعل الحوار بين الأشخاص الصم والموظفين لحظيًا ودقيقًا.
+      </p>
+
+      <div class="flex flex-wrap items-center justify-center gap-4 mb-12">
+        <a href="#simulator" class="bg-white text-indigo-900 hover:bg-indigo-50 font-extrabold px-8 py-3.5 rounded-full shadow-lg hover:shadow-xl transition transform hover:-translate-y-0.5 text-sm sm:text-base">
+          ✨ جرّب المحاكاة (ASL)
+        </a>
+        <a href="#idea" class="bg-white/15 hover:bg-white/25 text-white border-2 border-white/85 font-extrabold px-8 py-3.5 rounded-full transition transform hover:-translate-y-0.5 text-sm sm:text-base">
+          اعرف الفكرة
+        </a>
+      </div>
+
+      <div class="grid grid-cols-3 gap-3 sm:gap-5 w-full max-w-lg">
+        <div class="glass-stat rounded-2xl p-4 sm:p-5 flex flex-col items-center justify-center text-white shadow-md">
+          <span class="text-2xl sm:text-3xl font-black mb-1">٢</span>
+          <span class="text-xs sm:text-sm text-white/95 font-bold">اتجاه للترجمة</span>
+        </div>
+        <div class="glass-stat rounded-2xl p-4 sm:p-5 flex flex-col items-center justify-center text-white shadow-md">
+          <span class="text-2xl sm:text-3xl font-black mb-1">٣</span>
+          <span class="text-xs sm:text-sm text-white/95 font-bold">أماكن للاستخدام</span>
+        </div>
+        <div class="glass-stat rounded-2xl p-4 sm:p-5 flex flex-col items-center justify-center text-white shadow-md">
+          <span class="text-xl sm:text-3xl font-black mb-1">لحظي</span>
+          <span class="text-xs sm:text-sm text-white/95 font-bold">بدون انتظار</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 1: الفكرة -->
+  <section id="idea" class="py-16 sm:py-20 px-4 max-w-6xl mx-auto w-full">
+    <div class="text-right mb-12">
+      <span class="inline-block bg-teal-500/15 text-teal-600 dark:text-teal-300 px-3.5 py-1 rounded-full font-extrabold text-xs sm:text-sm mb-3">الفكرة</span>
+      <h2 class="text-2xl sm:text-4xl font-black mb-4">شاشة ذكية في قلب الخدمة</h2>
+      <p class="theme-text-muted text-sm sm:text-lg max-w-3xl font-medium">
+        شاشة تُوضع في المصالح الحكومية أو المستشفيات أو البنوك، فتصبح جسرًا لطيفًا وذكيًا بين الشخص الأصم والموظف.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div onclick="selectLocationContext('gov')" class="cursor-pointer group theme-card border-2 hover:border-indigo-400 rounded-3xl p-7 text-right transition-all duration-300 shadow-md hover:shadow-xl hover:-translate-y-1">
+        <div class="text-4xl mb-5 inline-block bg-indigo-500/15 p-4 rounded-2xl group-hover:scale-110 transition">🏛️</div>
+        <h3 class="text-xl font-extrabold mb-3">المصالح الحكومية</h3>
+        <p class="theme-text-muted text-sm sm:text-base leading-relaxed font-medium">
+          إنهاء الأوراق والخدمات بوضوح وبدون مرافق.
+        </p>
+      </div>
+
+      <div onclick="selectLocationContext('hospital')" class="cursor-pointer group theme-card border-2 hover:border-teal-400 rounded-3xl p-7 text-right transition-all duration-300 shadow-md hover:shadow-xl hover:-translate-y-1">
+        <div class="text-4xl mb-5 inline-block bg-teal-500/15 p-4 rounded-2xl group-hover:scale-110 transition">🏥</div>
+        <h3 class="text-xl font-extrabold mb-3">المستشفيات</h3>
+        <p class="theme-text-muted text-sm sm:text-base leading-relaxed font-medium">
+          شرح الأعراض وفهم تعليمات الطبيب بدقة.
+        </p>
+      </div>
+
+      <div onclick="selectLocationContext('bank')" class="cursor-pointer group theme-card border-2 hover:border-sky-400 rounded-3xl p-7 text-right transition-all duration-300 shadow-md hover:shadow-xl hover:-translate-y-1">
+        <div class="text-4xl mb-5 inline-block bg-sky-500/15 p-4 rounded-2xl group-hover:scale-110 transition">🏦</div>
+        <h3 class="text-xl font-extrabold mb-3">البنوك</h3>
+        <p class="theme-text-muted text-sm sm:text-base leading-relaxed font-medium">
+          فتح الحسابات والاستفسارات المالية باستقلالية.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: دور الذكاء الاصطناعي -->
+  <section id="ai-role" class="py-12 sm:py-16 px-4 max-w-6xl mx-auto w-full">
+    <div class="text-right mb-10">
+      <span class="inline-block bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 px-3.5 py-1 rounded-full font-extrabold text-xs sm:text-sm mb-3">دور الذكاء الاصطناعي</span>
+      <h2 class="text-2xl sm:text-4xl font-black mb-4">ترجمة تعمل في الاتجاهين</h2>
+      <p class="theme-text-muted text-sm sm:text-lg font-medium">
+        النظام الذكي يحوّل لغة الإشارة الأمريكية (ASL) والكلام الصوتي في نفس اللحظة وبشكل مستقل تمامًا على المتصفح.
+      </p>
+    </div>
+
+    <div class="flex flex-col gap-6">
+      <div class="teal-accent-card theme-card border-2 rounded-3xl p-7 sm:p-9 text-right shadow-md">
+        <div class="flex items-center justify-start gap-3 text-3xl sm:text-4xl mb-4">
+          <span>👋</span>
+          <span class="text-indigo-400 text-2xl font-bold">←</span>
+          <span>💬</span>
+        </div>
+        <h3 class="text-xl sm:text-2xl font-extrabold mb-2">من الأصم إلى الموظف (ASL to Speech & Text)</h3>
+        <p class="theme-text-muted text-sm sm:text-base leading-relaxed font-medium">
+          يحوّل النظام إشارات ASL التي تلتقطها الكاميرا إلى صوت إنجليزي واضح ونص مكتوب يراه الموظف فورًا.
+        </p>
+      </div>
+
+      <div class="teal-accent-card theme-card border-2 rounded-3xl p-7 sm:p-9 text-right shadow-md">
+        <div class="flex items-center justify-start gap-3 text-3xl sm:text-4xl mb-4">
+          <span>🗣️</span>
+          <span class="text-indigo-400 text-2xl font-bold">←</span>
+          <span>🎤</span>
+          <span>🧑‍💼</span>
+        </div>
+        <h3 class="text-xl sm:text-2xl font-extrabold mb-2">من الموظف إلى الأصم (Speech/Text to Refined ASL Avatar)</h3>
+        <p class="theme-text-muted text-sm sm:text-base leading-relaxed font-medium">
+          يحوّل كلام الموظف إلى شخصية مترجم إشارة احترافية (Refined ASL Avatar) ذات مفاصل تشريحية دقيقة وتعبيرات وجه قواعدية (Non-Manual Markers) تترجمه بلغة الإشارة الأمريكية في نفس اللحظة.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: تجربة حقيقية / المحاكاة التفاعلية -->
+  <section id="simulator" class="py-14 sm:py-20 px-4 max-w-6xl mx-auto w-full">
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
+      <div class="text-right">
+        <span class="inline-block bg-teal-500/15 text-teal-600 dark:text-teal-300 px-3.5 py-1 rounded-full font-extrabold text-xs sm:text-sm mb-3">تجربة حقيقية (Pure American Sign Language - ASL)</span>
+        <h2 class="text-2xl sm:text-4xl font-black mb-3">جرّب الترجمة في الاتجاهين (ASL)</h2>
+        <p class="theme-text-muted text-sm sm:text-base font-medium">
+          أفاتار مُحسّن بمفاصل ذراع وكوع ورسغ و٣٠ مفصل أصابع مع اتجاه راحة اليد (Palmar/Dorsal) لأداء إشارات ASL بدقة عالية.
+        </p>
+      </div>
+
+      <!-- Avatar Outfit Customizer -->
+      <div class="flex items-center gap-2.5 theme-card border-2 px-4 py-2.5 rounded-2xl shadow-sm self-start sm:self-auto">
+        <span class="text-xs font-bold theme-text-muted">لون سترة المترجم:</span>
+        <button onclick="setAvatarTheme('indigo')" class="w-6 h-6 rounded-full bg-indigo-600 border-2 border-white ring-2 ring-indigo-300 shadow hover:scale-110 transition" title="Navy Indigo"></button>
+        <button onclick="setAvatarTheme('teal')" class="w-6 h-6 rounded-full bg-teal-600 border-2 border-white ring-1 ring-teal-300 shadow hover:scale-110 transition" title="Emerald Teal"></button>
+        <button onclick="setAvatarTheme('rose')" class="w-6 h-6 rounded-full bg-rose-500 border-2 border-white ring-1 ring-rose-300 shadow hover:scale-110 transition" title="Crimson Rose"></button>
+        <button onclick="setAvatarTheme('amber')" class="w-6 h-6 rounded-full bg-slate-800 border-2 border-white ring-1 ring-slate-400 shadow hover:scale-110 transition" title="Charcoal Contrast (Best for ASL)"></button>
+      </div>
+    </div>
+
+    <!-- Two Columns Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+      
+      <!-- RIGHT COLUMN: Deaf to Employee (ASL Recognition) -->
+      <div class="theme-card border-2 rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-5 flex-wrap gap-2">
+            <h3 class="text-lg sm:text-xl font-black flex items-center gap-2">
+              <span>👋</span>
+              <span>من الأصم إلى الموظف (ASL Camera)</span>
+            </h3>
+            <span id="cameraStatusBadge" class="text-xs bg-indigo-500/10 text-indigo-700 dark:text-indigo-200 px-3.5 py-1.5 rounded-full border border-indigo-400/30 font-bold" dir="ltr">
+              ASL Smart Simulator Ready
+            </span>
+          </div>
+
+          <!-- Camera / Visual Gesture Viewport -->
+          <div class="relative w-full h-72 sm:h-80 theme-stage rounded-3xl border-2 overflow-hidden mb-5 flex items-center justify-center group shadow-inner">
+            <video id="webcamVideo" autoplay playsinline muted class="w-full h-full object-cover hidden scale-x-[-1]"></video>
+
+            <div id="cameraPlaceholder" class="flex flex-col items-center justify-center text-center p-6 w-full h-full relative">
+              <div class="relative w-28 h-28 flex items-center justify-center mb-4">
+                <div class="absolute inset-0 rounded-full bg-indigo-500/20 pulse-ring"></div>
+                <div class="w-24 h-24 rounded-3xl bg-white/80 dark:bg-indigo-950/80 shadow-md border border-indigo-200 dark:border-indigo-700 flex items-center justify-center">
+                  <div id="simulatedHandEmoji" class="text-6xl transition-transform duration-300 select-none">🤟</div>
+                </div>
+              </div>
+              <p id="cameraOverlayText" class="theme-text-muted text-sm font-bold max-w-xs leading-relaxed">
+                Start your webcam or select an ASL sign below to simulate instant recognition and speech output
+              </p>
+              <div id="scanBar" class="hidden absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-transparent via-teal-400 to-transparent animate-pulse"></div>
+            </div>
+
+            <div id="hudOverlay" class="hidden absolute bottom-3 right-3 left-3 bg-indigo-950/80 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/15 flex items-center justify-between text-xs text-teal-300 font-bold" dir="ltr">
+              <span>🟢 ASL Hand Tracking Active</span>
+              <span id="detectedPoseLabel">Waiting for ASL sign...</span>
+            </div>
+          </div>
+
+          <!-- Camera Control Buttons -->
+          <div class="flex flex-wrap items-center gap-3 mb-5">
+            <button id="toggleCamBtn" onclick="toggleCamera()" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold py-3.5 px-5 rounded-full shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 text-sm sm:text-base">
+              <span>📷</span>
+              <span id="toggleCamText">شغّل الكاميرا (Start Camera)</span>
+            </button>
+
+            <button id="captureSignBtn" onclick="captureCurrentSign()" class="flex-1 bg-teal-500 hover:bg-teal-400 text-white font-extrabold py-3.5 px-5 rounded-full shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 text-sm sm:text-base">
+              <span>🤟</span>
+              <span>التقط الإشارة (Capture ASL)</span>
+            </button>
+          </div>
+
+          <!-- Preset ASL Gestures (Pure English ASL) -->
+          <div class="mb-5">
+            <span class="text-xs theme-text-muted block mb-2.5 font-bold">Instant ASL Signs (Click to capture, animate on avatar, and speak aloud in English):</span>
+            <div class="flex flex-wrap gap-2" id="deafPresetChips" dir="ltr">
+              <button onclick="triggerDeafSign('hello')" class="text-xs theme-subcard hover:border-indigo-400 border px-3.5 py-2 rounded-xl font-bold transition flex items-center gap-1.5 shadow-sm">
+                <span>👋</span><span>"Hello! I need assistance today."</span>
+              </button>
+              <button onclick="triggerDeafSign('bank')" class="text-xs theme-subcard hover:border-indigo-400 border px-3.5 py-2 rounded-xl font-bold transition flex items-center gap-1.5 shadow-sm">
+                <span>🏦</span><span>"I want to open a bank account."</span>
+              </button>
+              <button onclick="triggerDeafSign('hospital')" class="text-xs theme-subcard hover:border-indigo-400 border px-3.5 py-2 rounded-xl font-bold transition flex items-center gap-1.5 shadow-sm">
+                <span>🏥</span><span>"I need to see a doctor right away."</span>
+              </button>
+              <button onclick="triggerDeafSign('gov')" class="text-xs theme-subcard hover:border-indigo-400 border px-3.5 py-2 rounded-xl font-bold transition flex items-center gap-1.5 shadow-sm">
+                <span>🪪</span><span>"Here is my ID card and document."</span>
+              </button>
+              <button onclick="triggerDeafSign('thanks')" class="text-xs theme-subcard hover:border-indigo-400 border px-3.5 py-2 rounded-xl font-bold transition flex items-center gap-1.5 shadow-sm">
+                <span>🤟</span><span>"Thank you very much for your help!"</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Output Box for Employee -->
+        <div class="theme-subcard border-2 rounded-2xl p-4 sm:p-5 flex flex-col gap-2.5" dir="ltr">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-extrabold text-teal-600 dark:text-teal-300">Translated English Text & Voice for Staff:</span>
+            <button onclick="speakDeafOutput()" class="text-xs bg-teal-500/15 hover:bg-teal-500/25 text-teal-700 dark:text-teal-200 px-3 py-1.5 rounded-xl border border-teal-500/30 font-bold transition flex items-center gap-1">
+              <span>🔊</span>
+              <span>Replay English Voice</span>
+            </button>
+          </div>
+          <p id="deafToEmployeeOutput" class="text-sm sm:text-base font-bold leading-relaxed min-h-[3rem] flex items-center">
+            Click "Capture ASL" or choose any ASL sign above to translate into English speech immediately.
+          </p>
+        </div>
+      </div>
+
+      <!-- LEFT COLUMN: Employee to Deaf (Refined Anatomical ASL Avatar) -->
+      <div class="theme-card border-2 rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+            <h3 class="text-lg sm:text-xl font-black flex items-center gap-2">
+              <span>🗣️</span>
+              <span>من الموظف إلى الأصم (Refined ASL Avatar)</span>
+            </h3>
+            <div class="flex items-center gap-2" dir="ltr">
+              <button id="slowMoBtn" onclick="toggleSlowMotion()" class="text-xs bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 dark:text-amber-200 px-3 py-1.5 rounded-full border border-amber-400/40 font-extrabold transition flex items-center gap-1 shadow-sm" title="Slow down to inspect exact ASL handshape & joints">
+                <span>🐢</span>
+                <span id="slowMoText">Slow-Mo: OFF</span>
+              </button>
+              <button id="zoomHandsBtn" onclick="toggleHandZoom()" class="text-xs bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-700 dark:text-indigo-200 px-3 py-1.5 rounded-full border border-indigo-400/40 font-extrabold transition flex items-center gap-1 shadow-sm" title="Zoom in on hands & finger joints">
+                <span>🔍</span>
+                <span id="zoomHandsText">Zoom Hands</span>
+              </button>
+              <span id="avatarGestureBadge" class="text-xs bg-rose-500/15 text-rose-600 dark:text-rose-300 px-3.5 py-1.5 rounded-full border border-rose-400/30 font-extrabold">
+                ✨ ASL Ready
+              </span>
+            </div>
+          </div>
+
+          <!-- Refined Anatomical ASL Interpreter Stage -->
+          <div class="relative w-full h-[26rem] sm:h-[30rem] theme-stage rounded-3xl border-2 overflow-hidden mb-3 flex flex-col items-center justify-between p-3 sm:p-4 shadow-inner">
+            
+            <!-- Top Stage Info: Sign Meaning + Orientation Badge -->
+            <div class="w-full flex items-center justify-between z-20 px-1 gap-2 flex-wrap" dir="ltr">
+              <div id="signBubbleBanner" class="px-3.5 py-1 rounded-full bg-teal-600 text-white font-extrabold text-xs sm:text-sm shadow-md flex items-center gap-1.5 transition-all duration-300 opacity-0 scale-90">
+                <span id="signBubbleEmoji" class="text-base">👋</span>
+                <span id="signBubbleText">HELLO (ASL Salute)</span>
+              </div>
+              <div id="fingerStateBadge" class="text-[11px] bg-white/95 dark:bg-indigo-950/95 text-indigo-800 dark:text-teal-300 px-3 py-1 rounded-full border border-indigo-300 dark:border-indigo-700 font-extrabold shadow-sm">
+                🖐️ Palmar & Dorsal ASL Rig • 30 Phalanges
+              </div>
+            </div>
+
+            <!-- Refined Anatomical ASL Interpreter SVG (viewBox 0 0 380 340) -->
+            <svg id="cuteSignAvatar" viewBox="0 0 380 340" class="w-full h-64 sm:h-72 relative z-10 select-none transition-all duration-500" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <!-- High-Contrast Interpreter Blazer Gradient -->
+                <linearGradient id="shirtGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop id="shirtStop1" offset="0%" stop-color="#3730a3" />
+                  <stop id="shirtStop2" offset="100%" stop-color="#1e1b4b" />
+                </linearGradient>
+                <!-- Forearm Sleeve Gradient (Slightly lighter for 3D depth) -->
+                <linearGradient id="forearmGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop id="forearmStop1" offset="0%" stop-color="#4338ca" />
+                  <stop id="forearmStop2" offset="100%" stop-color="#312e81" />
+                </linearGradient>
+                <!-- Refined Natural Skin Gradient -->
+                <linearGradient id="skinGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#ffedd5" />
+                  <stop offset="60%" stop-color="#fed7aa" />
+                  <stop offset="100%" stop-color="#f5bd8a" />
+                </linearGradient>
+                <!-- Dorsal (Back of Hand) Shaded Skin Gradient -->
+                <linearGradient id="dorsalSkinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#fdba74" />
+                  <stop offset="100%" stop-color="#e89968" />
+                </linearGradient>
+                <!-- Rich Hair Gradient -->
+                <linearGradient id="hairGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#3b2f4a" />
+                  <stop offset="100%" stop-color="#1f1829" />
+                </linearGradient>
+                <filter id="cuteShadow" x="-15%" y="-15%" width="130%" height="130%">
+                  <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.22"/>
+                </filter>
+                <marker id="motionArrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#14b8a6" />
+                </marker>
+              </defs>
+
+              <!-- Soft Ground Shadow -->
+              <ellipse cx="190" cy="322" rx="86" ry="9" fill="#4f46e5" opacity="0.16" />
+
+              <!-- Back Hair Layer -->
+              <path d="M134,76 C130,36 250,36 246,76 L250,136 C250,150 236,158 222,158 L158,158 C144,158 130,150 130,136 Z" fill="url(#hairGrad)" />
+
+              <!-- Anatomical Neck with Subtle Collarbone Shadow -->
+              <path d="M174,134 L206,134 L209,166 L171,166 Z" fill="url(#skinGrad)" />
+              <path d="M174,142 Q190,150 206,142" fill="none" stroke="#d99568" stroke-width="2" opacity="0.45" />
+
+              <!-- Refined Professional Interpreter Blazer & Inner Shirt -->
+              <g filter="url(#cuteShadow)">
+                <!-- Outer Tailored Torso -->
+                <path d="M114,186 C114,154 266,154 266,186 L272,308 C272,316 262,320 250,320 L130,320 C118,320 108,316 108,308 Z" fill="url(#shirtGrad)" />
+                <!-- Crisp Inner Teal Shirt V-Neck -->
+                <polygon points="164,158 216,158 190,210" fill="#14b8a6" />
+                <!-- Tailored Jacket Lapels -->
+                <path d="M162,157 L190,212 L150,204 Z" fill="#ffffff" opacity="0.14" />
+                <path d="M218,157 L190,212 L230,204 Z" fill="#ffffff" opacity="0.14" />
+                <path d="M164,158 L190,210 L216,158" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.85" />
+                <!-- Interpreter ID Pin -->
+                <circle cx="222" cy="196" r="6" fill="#2dd4bf" />
+                <circle cx="222" cy="196" r="2.5" fill="#ffffff" />
+              </g>
+
+              <!-- Refined Expressive Head Group (Supports ASL Non-Manual Facial Grammar) -->
+              <g id="avatarHead" transform="translate(0, 0) rotate(0 190 96)">
+                <!-- Ears with Inner Helix Detail -->
+                <g>
+                  <ellipse cx="137" cy="98" rx="9" ry="13" fill="url(#skinGrad)" stroke="#d99568" stroke-width="1.2" />
+                  <path d="M135,93 Q139,98 135,103" fill="none" stroke="#c87d55" stroke-width="1.5" stroke-linecap="round" />
+                  <ellipse cx="243" cy="98" rx="9" ry="13" fill="url(#skinGrad)" stroke="#d99568" stroke-width="1.2" />
+                  <path d="M245,93 Q241,98 245,103" fill="none" stroke="#c87d55" stroke-width="1.5" stroke-linecap="round" />
+                </g>
+
+                <!-- Refined Sculpted Jawline & Face Shape -->
+                <path d="M142,74 C142,42 238,42 238,74 L236,104 C236,128 212,144 190,144 C168,144 144,128 144,104 Z" fill="url(#skinGrad)" stroke="#d99568" stroke-width="1.2" filter="url(#cuteShadow)" />
+
+                <!-- Refined Layered Hair Sweep & Hairline -->
+                <path d="M140,84 C138,38 242,38 240,84 C228,62 206,56 180,60 C158,63 146,72 140,84 Z" fill="url(#hairGrad)" />
+                <path d="M148,66 Q178,52 214,62" fill="none" stroke="#58476e" stroke-width="2.5" stroke-linecap="round" opacity="0.7" />
+                <!-- Modern Teal Interpreter Hair Clip -->
+                <rect x="215" y="59" width="16" height="5.5" rx="2.7" transform="rotate(16 223 62)" fill="#14b8a6" />
+
+                <!-- Dynamic ASL Non-Manual Eyebrows (Raise for Yes/No, Furrow for WH-Questions) -->
+                <path id="eyebrowR" d="M156,80 Q167,75 177,80" fill="none" stroke="#2a2038" stroke-width="3.2" stroke-linecap="round" />
+                <path id="eyebrowL" d="M203,80 Q213,75 224,80" fill="none" stroke="#2a2038" stroke-width="3.2" stroke-linecap="round" />
+
+                <!-- Refined Expressive Eyes with Iris Ring, Upper Lashes & Catchlights -->
+                <g id="avatarEyes">
+                  <!-- Right Eye (Viewer's Left) -->
+                  <ellipse cx="167" cy="95" rx="9" ry="7.5" fill="#ffffff" />
+                  <circle cx="167" cy="95" r="5.8" fill="#312e81" />
+                  <circle cx="167" cy="95" r="3.2" fill="#0f172a" />
+                  <circle cx="164.8" cy="92.8" r="2.1" fill="#ffffff" />
+                  <circle cx="169.2" cy="97.2" r="1.0" fill="#ffffff" />
+                  <path d="M156,92 Q167,85 178,92" fill="none" stroke="#1e1b4b" stroke-width="2.6" stroke-linecap="round" />
+
+                  <!-- Left Eye (Viewer's Right) -->
+                  <ellipse cx="213" cy="95" rx="9" ry="7.5" fill="#ffffff" />
+                  <circle cx="213" cy="95" r="5.8" fill="#312e81" />
+                  <circle cx="213" cy="95" r="3.2" fill="#0f172a" />
+                  <circle cx="210.8" cy="92.8" r="2.1" fill="#ffffff" />
+                  <circle cx="215.2" cy="97.2" r="1.0" fill="#ffffff" />
+                  <path d="M202,92 Q213,85 224,92" fill="none" stroke="#1e1b4b" stroke-width="2.6" stroke-linecap="round" />
+                </g>
+
+                <!-- Refined Nose Bridge & Tip -->
+                <path d="M189,93 L187,106 Q190,109 194,106" fill="none" stroke="#c87d55" stroke-width="2" stroke-linecap="round" />
+
+                <!-- Subtle Natural Cheek Warmth -->
+                <ellipse cx="154" cy="108" rx="7.5" ry="4" fill="#fb7185" opacity="0.32" />
+                <ellipse cx="226" cy="108" rx="7.5" ry="4" fill="#fb7185" opacity="0.32" />
+
+                <!-- Expressive Mouth (Supports ASL Mouth Morphemes) -->
+                <path id="avatarMouth" d="M178,119 Q190,128 202,119" fill="none" stroke="#9f1239" stroke-width="3.2" stroke-linecap="round" />
+              </g>
+
+              <!-- TWO-SEGMENT ANATOMICAL ARMS (Upper Arm + Elbow Joint + Forearm) -->
+              <!-- Right Arm (Dominant ASL Arm - Viewer's Left) -->
+              <line id="rightUpperArm" x1="124" y1="180" x2="88" y2="230" stroke="url(#shirtGrad)" stroke-width="24" stroke-linecap="round" filter="url(#cuteShadow)" />
+              <circle id="rightElbowJoint" cx="88" cy="230" r="11.5" fill="url(#forearmGrad)" />
+              <line id="rightForearm" x1="88" y1="230" x2="112" y2="252" stroke="url(#forearmGrad)" stroke-width="21" stroke-linecap="round" filter="url(#cuteShadow)" />
+
+              <!-- Left Arm (Non-Dominant Base ASL Arm - Viewer's Right) -->
+              <line id="leftUpperArm" x1="256" y1="180" x2="292" y2="230" stroke="url(#shirtGrad)" stroke-width="24" stroke-linecap="round" filter="url(#cuteShadow)" />
+              <circle id="leftElbowJoint" cx="292" cy="230" r="11.5" fill="url(#forearmGrad)" />
+              <line id="leftForearm" x1="292" y1="230" x2="268" y2="252" stroke="url(#forearmGrad)" stroke-width="21" stroke-linecap="round" filter="url(#cuteShadow)" />
+
+              <!-- VISUAL MOTION GUIDE TRAJECTORY ARROW -->
+              <path id="aslMotionPath" d="" fill="none" stroke="#14b8a6" stroke-width="3" stroke-dasharray="5 4" marker-end="url(#motionArrow)" opacity="0" />
+
+              <!-- ARTICULATED RIGHT HAND (Viewer's Left - Dominant ASL Hand) -->
+              <g id="rightHandGroup" transform="translate(112, 252) rotate(-8)" filter="url(#cuteShadow)"></g>
+
+              <!-- ARTICULATED LEFT HAND (Viewer's Right - Base ASL Hand) -->
+              <g id="leftHandGroup" transform="translate(268, 252) rotate(8)" filter="url(#cuteShadow)"></g>
+
+              <!-- Center Floating ASL Callout Badge -->
+              <g id="centerSignProp" opacity="0" transform="translate(190, 152) scale(0.8)" class="avatar-smooth">
+                <rect x="-30" y="-17" width="60" height="34" rx="11" fill="#ffffff" stroke="#4f46e5" stroke-width="2" opacity="0.96" filter="url(#cuteShadow)" />
+                <text id="centerPropEmoji" x="0" y="5" text-anchor="middle" font-size="15" font-weight="900" fill="#1e1b4b">ASL</text>
+              </g>
+            </svg>
+
+            <!-- 14 Authentic & Accurate ASL Sign Buttons -->
+            <div class="flex flex-wrap items-center justify-center gap-1.5 z-10 w-full" dir="ltr">
+              <button onclick="setAvatarPose('wave')" class="text-[11px] bg-white/95 dark:bg-white/10 hover:bg-indigo-600 hover:text-white px-2.5 py-1 rounded-full font-extrabold border border-indigo-200 dark:border-white/10 transition shadow-sm">👋 HELLO</button>
+              <button onclick="setAvatarPose('thankyou')" class="text-[11px] bg-white/95 dark:bg-white/10 hover:bg-teal-600 hover:text-white px-2.5 py-1 rounded-full font-extrabold border border-indigo-200 dark:border-white/10 transition shadow-sm">🤲 THANK YOU</button>
+              <button onclick="setAvatarPose('please')" class="text-[11px] bg-white/95 dark:bg-white/10 hover:bg-sky-600 hover:text-white px-2.5 py-1 rounded-full font-extrabold border border-indigo-200 dark:border-white/10 transition shadow-sm">✋ PLEASE</button>
+              <button onclick="setAvatarPose('help')" class="text-[11px] bg-white/95 dark:bg-white/10 hover:bg-emerald-600 hover:text-white px-2.5 py-1 rounded-full font-extrabold border border-indigo-200 dark:border-white/10 transition shadow-sm">👍 HELP</button>
+              <button onclick="setAvatarPose('heart')" class="text-[11px] bg-white/95 dark:bg-white/10 hover:bg-rose-500 hover:text-white px-2.5 py-1 rounded-full font-extrabold border border-indigo-200 dark:border-white/10 transition shadow-sm">🤟 ILY</button>
+              <button onclick="setAvatarPose('yes')" class="text-[11px] bg-white/95 dark:bg-white/10 hover:bg-emerald-500 hover:text-white px-2.5 py-1 rounded-full font-extrabold border border-indigo-200 dark:border-white/10 transition shadow-sm">✊ YES</button>
+              <button onclick="setAvatarPose('no')" class="text-[11px] bg-white/95 dark:bg-white/10 hover:bg-rose-600 hover:text-white px-2.5 py-1 rounded-full font-extrabold border border-indigo-200 dark:border-white/10 transition shadow-sm">🤏 NO</button>
+              <button onclick="setAvatarPose('document')" class="text-[11px] bg-white/95 dark:bg-white/10 hover:bg-teal-500 hover:text-white px-2.5 py-1 rounded-full font-extrabold border border-indigo-200 dark:border-white/10 transition shadow-sm">🪪 ID CARD</button>
+              <button onclick="setAvatarPose('question')" class="text-[11px] bg-white/95 dark:bg-white/10 hover:bg-amber-500 hover:text-white px-2.5 py-1 rounded-full font-extrabold border border-indigo-200 dark:border-white/10 transition shadow-sm">☝️ QUESTION</button>
+              <button onclick="setAvatarPose('what')" class="text-[11px] bg-white/95 dark:bg-white/10 hover:bg-purple-600 hover:text-white px-2.5 py-1 rounded-full font-extrabold border border-indigo-200 dark:border-white/10 transition shadow-sm">🤷 WHAT / WHERE</button>
+              <button onclick="setAvatarPose('bank')" class="text-[11px] bg-white/95 dark:bg-white/10 hover:bg-sky-500 hover:text-white px-2.5 py-1 rounded-full font-extrabold border border-indigo-200 dark:border-white/10 transition shadow-sm">🏦 MONEY / BANK</button>
+              <button onclick="setAvatarPose('hospital')" class="text-[11px] bg-white/95 dark:bg-white/10 hover:bg-pink-500 hover:text-white px-2.5 py-1 rounded-full font-extrabold border border-indigo-200 dark:border-white/10 transition shadow-sm">🏥 DOCTOR</button>
+              <button onclick="setAvatarPose('name')" class="text-[11px] bg-white/95 dark:bg-white/10 hover:bg-indigo-500 hover:text-white px-2.5 py-1 rounded-full font-extrabold border border-indigo-200 dark:border-white/10 transition shadow-sm">✌️ NAME (H-Tap)</button>
+              <button onclick="setAvatarPose('idle')" class="text-[11px] bg-white/75 dark:bg-white/5 hover:bg-slate-600 hover:text-white px-2.5 py-1 rounded-full font-bold border border-slate-300 dark:border-white/10 transition">↺ Reset</button>
+            </div>
+          </div>
+
+          <!-- Pop-Up Illustrated Sign Image Box (Replaces the text explanation box below the avatar) -->
+          <div id="signReferencePopup" class="theme-subcard border-2 border-indigo-200 dark:border-indigo-800/70 rounded-2xl p-3.5 mb-3 flex flex-col items-center justify-center relative overflow-hidden min-h-[12.5rem] transition-all duration-300" dir="ltr">
+            <!-- Idle Placeholder State -->
+            <div id="popupIdlePlaceholder" class="flex flex-col items-center justify-center text-center py-4">
+              <span class="text-3xl mb-1.5 opacity-80">🖼️</span>
+              <span class="text-xs sm:text-sm font-extrabold text-indigo-900 dark:text-white">ASL Sign Visual & Explanation Box</span>
+              <span class="text-[11px] theme-text-muted font-bold mt-0.5">Click any ASL sign, letter, or translate a sentence to see the drawn sign image and its explanation here</span>
+            </div>
+
+            <!-- Active Pop-Up Sign Image + Explanation Content -->
+            <div id="popupActiveContent" class="hidden w-full flex flex-col items-center justify-center transition-all duration-300 transform scale-90 opacity-0">
+              <div class="w-full flex items-center justify-between px-2 mb-2">
+                <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-teal-500 animate-ping"></span>
+                  <span id="popupSignLabel" class="text-xs sm:text-sm font-black text-indigo-950 dark:text-white tracking-wide">HELLO</span>
+                </div>
+                <span id="popupHandCode" class="text-[11px] font-black bg-indigo-600 text-white px-2.5 py-0.5 rounded-full shadow-sm">B/5 Salute</span>
+              </div>
+
+              <!-- Custom-Drawn Line-Art Sign Image -->
+              <div id="popupSignIllustration" class="w-full max-w-[240px] h-32 sm:h-36 rounded-2xl bg-[#fffdf9] dark:bg-[#121029] border-2 border-indigo-300/80 dark:border-teal-400/60 flex items-center justify-center overflow-hidden shadow-md">
+              </div>
+
+              <!-- Sign Explanation Beneath the Image -->
+              <div class="w-full mt-2.5 bg-white/90 dark:bg-indigo-950/70 border border-indigo-200/80 dark:border-indigo-700/60 rounded-xl px-3.5 py-2.5 text-left shadow-sm">
+                <div class="flex items-center gap-1.5 mb-0.5">
+                  <span class="text-xs">📖</span>
+                  <span id="popupSignTitle" class="text-xs font-black text-indigo-700 dark:text-teal-300">How to perform this sign:</span>
+                </div>
+                <p id="popupSignSub" class="text-xs theme-text-muted font-bold leading-relaxed">
+                  Dominant right hand starts at the right eyebrow/temple in a flat salute and arcs outward.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Complete 26-Letter ASL A-Z Fingerspelling Bar -->
+          <div class="theme-subcard border rounded-2xl px-3.5 py-2.5 mb-3" dir="ltr">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <span class="text-xs font-extrabold text-indigo-600 dark:text-teal-300 flex items-center gap-1">
+                <span>🔤</span>
+                <span>Complete 26-Letter ASL Fingerspelling Alphabet (A–Z):</span>
+              </span>
+              <div class="flex items-center gap-1">
+                <button onclick="playFingerCountDemo()" class="text-[11px] bg-teal-500 hover:bg-teal-400 text-white px-2.5 py-0.5 rounded-lg font-extrabold transition shadow-sm">🔢 Count 1–5</button>
+                <button onclick="fingerspellWord('SIGNBRIDGE')" class="text-[11px] bg-indigo-600 hover:bg-indigo-500 text-white px-2.5 py-0.5 rounded-lg font-extrabold transition shadow-sm">Spell "SIGNBRIDGE"</button>
+              </div>
+            </div>
+            <!-- All 26 ASL Alphabet Buttons -->
+            <div class="flex flex-wrap gap-1 justify-center sm:justify-start" id="aslAlphabetButtons"></div>
+          </div>
+
+          <!-- Input Field for Employee (Pure English ASL) -->
+          <div class="mb-3" dir="ltr">
+            <input
+              id="employeeInput"
+              type="text"
+              placeholder="Type an English sentence (e.g., Hello, how can I help you today please?)"
+              class="w-full theme-subcard placeholder-slate-400 border-2 focus:border-indigo-500 focus:outline-none rounded-2xl px-4 py-3 text-sm sm:text-base font-bold transition"
+              onkeydown="if(event.key === 'Enter') translateEmployeeToSign()"
+            />
+          </div>
+
+          <!-- Quick Preset Phrases for Employee (Pure English ASL) -->
+          <div class="mb-4" dir="ltr">
+            <span class="text-xs theme-text-muted block mb-2 font-bold">Quick English ASL Sentences (Click to translate word-by-word in ASL):</span>
+            <div class="flex flex-wrap gap-1.5">
+              <button onclick="useEmployeePreset('Hello, how can I help you today please?')" class="text-xs theme-subcard hover:border-indigo-400 border px-3 py-1.5 rounded-xl font-bold transition shadow-sm">
+                👋 Hello, how can I help you today please?
+              </button>
+              <button onclick="useEmployeePreset('What is your name? Please show your ID card')" class="text-xs theme-subcard hover:border-indigo-400 border px-3 py-1.5 rounded-xl font-bold transition shadow-sm">
+                🪪 What is your name? Please show your ID card
+              </button>
+              <button onclick="useEmployeePreset('Yes, your bank account and money transfer are ready!')" class="text-xs theme-subcard hover:border-indigo-400 border px-3 py-1.5 rounded-xl font-bold transition shadow-sm">
+                🏦 Yes, your bank account and money transfer are ready!
+              </button>
+              <button onclick="useEmployeePreset('The doctor will help you now, thank you!')" class="text-xs theme-subcard hover:border-indigo-400 border px-3 py-1.5 rounded-xl font-bold transition shadow-sm">
+                🏥 The doctor will help you now, thank you!
+              </button>
+            </div>
+          </div>
+
+          <!-- Voice & Translate Buttons -->
+          <div class="flex flex-wrap items-center gap-3 mb-5">
+            <button id="micBtn" onclick="startEmployeeVoiceRecognition()" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold py-3.5 px-5 rounded-full shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 text-sm sm:text-base">
+              <span>🎤</span>
+              <span id="micBtnText">Speak English (تحدّث)</span>
+            </button>
+
+            <button onclick="translateEmployeeToSign()" class="flex-1 bg-teal-500 hover:bg-teal-400 text-white font-extrabold py-3.5 px-5 rounded-full shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 text-sm sm:text-base">
+              <span>✋</span>
+              <span>Translate to ASL (ترجم للإشارة)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Output Sequence Box under Avatar -->
+        <div class="theme-subcard border-2 rounded-2xl p-4 sm:p-5" dir="ltr">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs font-extrabold text-teal-600 dark:text-teal-300">ASL Gloss & Sign Sequence:</span>
+            <span id="signSequenceProgress" class="text-xs font-bold theme-text-muted"></span>
+          </div>
+          <div id="avatarSubtitleOutput" class="text-sm sm:text-base font-bold leading-relaxed min-h-[2.25rem] flex flex-wrap items-center gap-1.5">
+            Type or speak an English sentence above—known words trigger exact ASL signs and custom names are fingerspelled A–Z!
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Section 4: لماذا SignBridge AI؟ / مزايا الفكرة -->
+  <section id="benefits" class="py-16 sm:py-20 px-4 max-w-6xl mx-auto w-full">
+    <div class="text-right mb-12">
+      <span class="inline-block bg-teal-500/15 text-teal-600 dark:text-teal-300 px-3.5 py-1 rounded-full font-extrabold text-xs sm:text-sm mb-3">لماذا SignBridge AI؟</span>
+      <h2 class="text-2xl sm:text-4xl font-black">مزايا الفكرة</h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="theme-card border-2 rounded-3xl p-7 text-right shadow-md hover:border-amber-400 transition">
+        <div class="text-4xl mb-5 inline-block bg-amber-500/15 p-4 rounded-2xl">⚡</div>
+        <h3 class="text-xl font-extrabold mb-3">ترجمة فورية</h3>
+        <p class="theme-text-muted text-sm sm:text-base leading-relaxed font-medium">
+          حوار طبيعي بدون انتظار مترجم.
+        </p>
+      </div>
+
+      <div class="theme-card border-2 rounded-3xl p-7 text-right shadow-md hover:border-teal-400 transition">
+        <div class="text-4xl mb-5 inline-block bg-teal-500/15 p-4 rounded-2xl">🦋</div>
+        <h3 class="text-xl font-extrabold mb-3">استقلالية</h3>
+        <p class="theme-text-muted text-sm sm:text-base leading-relaxed font-medium">
+          الشخص الأصم ينجز خدماته بنفسه.
+        </p>
+      </div>
+
+      <div class="theme-card border-2 rounded-3xl p-7 text-right shadow-md hover:border-indigo-400 transition">
+        <div class="text-4xl mb-5 inline-block bg-indigo-500/15 p-4 rounded-2xl">🤝</div>
+        <h3 class="text-xl font-extrabold mb-3">دمج مجتمعي</h3>
+        <p class="theme-text-muted text-sm sm:text-base leading-relaxed font-medium">
+          خدمات عامة متاحة للجميع بالتساوي.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="mt-auto border-t border-indigo-100 dark:border-white/10 bg-white dark:bg-[#0e0d22] py-10 px-4 text-center transition-colors">
+    <div class="max-w-4xl mx-auto flex flex-col items-center gap-2.5">
+      <p class="font-extrabold text-sm sm:text-base text-indigo-950 dark:text-white">
+        SignBridge AI 🤟 · Interactive ASL Sign Language Translator
+      </p>
+      <p class="theme-text-muted text-xs max-w-xl leading-relaxed font-medium">
+        نظام مترجم تفاعلي ثنائي الاتجاه يعمل بالكامل داخل المتصفح مع أفاتار تشريحي دقيق ولوحة صور توضيحية فورية لإشارات لغة الإشارة الأمريكية (ASL).
+      </p>
+    </div>
+  </footer>
+
+  <!-- Application Logic (Pure ASL Engine + Refined Anatomical Interpreter Rig + Pop-up Sign Visuals) -->
+  <script>
+    // ============================================================================
+    // 0. THEME MODE SWITCHER
+    // ============================================================================
+    function toggleThemeMode() {
+      const htmlEl = document.documentElement;
+      const isDark = htmlEl.classList.toggle('dark');
+      const iconEl = document.getElementById('themeToggleIcon');
+      const textEl = document.getElementById('themeToggleText');
+
+      if (isDark) {
+        iconEl.textContent = '☀️';
+        textEl.textContent = 'وضع مشرق';
+        showToast('Dark Mode Enabled', '🌙');
+      } else {
+        iconEl.textContent = '🌙';
+        textEl.textContent = 'وضع ليلي';
+        showToast('Bright Mode Enabled', '☀️');
+      }
+    }
+
+    // ============================================================================
+    // 1. TOAST NOTIFICATION SYSTEM
+    // ============================================================================
+    function showToast(message, icon = '✨') {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+      const toast = document.createElement('div');
+      toast.className = 'bg-indigo-950 text-white border border-indigo-400/40 px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 text-sm font-bold transition-all duration-300 transform translate-y-2 opacity-0 pointer-events-auto';
+      toast.innerHTML = `<span class="text-lg">${icon}</span><span>${message}</span>`;
+      container.appendChild(toast);
+
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    // ============================================================================
+    // 2. DEAF TO EMPLOYEE (Pure ASL Camera Recognition & English Speech Output)
+    // ============================================================================
+    let mediaStream = null;
+    let cameraActive = false;
+    let currentSignIndex = 0;
+
+    const signDictionary = {
+      hello: {
+        emoji: '👋',
+        label: 'ASL Sign: HELLO / HELP',
+        text: 'Hello! I am Deaf and I need assistance with my service today.',
+        pose: 'wave'
+      },
+      bank: {
+        emoji: '🏦',
+        label: 'ASL Sign: MONEY / BANK ACCOUNT',
+        text: 'I would like to open a new bank account and inquire about cards.',
+        pose: 'bank'
+      },
+      hospital: {
+        emoji: '🏥',
+        label: 'ASL Sign: DOCTOR / HOSPITAL',
+        text: 'I feel pain and need to see a doctor right away.',
+        pose: 'hospital'
+      },
+      gov: {
+        emoji: '🪪',
+        label: 'ASL Sign: ID CARD / DOCUMENT',
+        text: 'Here is my personal ID card and required documents.',
+        pose: 'document'
+      },
+      thanks: {
+        emoji: '🤟',
+        label: 'ASL Sign: THANK YOU / ILY',
+        text: 'Thank you very much for your clear and fast help!',
+        pose: 'thankyou'
+      }
+    };
+
+    const signKeys = Object.keys(signDictionary);
+
+    async function toggleCamera() {
+      const video = document.getElementById('webcamVideo');
+      const placeholder = document.getElementById('cameraPlaceholder');
+      const btnText = document.getElementById('toggleCamText');
+      const badge = document.getElementById('cameraStatusBadge');
+      const hud = document.getElementById('hudOverlay');
+
+      if (cameraActive) {
+        if (mediaStream) {
+          mediaStream.getTracks().forEach(track => track.stop());
+        }
+        video.classList.add('hidden');
+        placeholder.classList.remove('hidden');
+        hud.classList.add('hidden');
+        btnText.textContent = 'شغّل الكاميرا (Start Camera)';
+        badge.textContent = 'ASL Smart Simulator Ready';
+        cameraActive = false;
+        showToast('Camera stopped. Smart ASL Simulator active.', '📷');
+        return;
+      }
+
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+        video.srcObject = mediaStream;
+        video.classList.remove('hidden');
+        placeholder.classList.add('hidden');
+        hud.classList.remove('hidden');
+        btnText.textContent = 'إيقاف الكاميرا (Stop Camera)';
+        badge.textContent = '🟢 Live Webcam Connected';
+        cameraActive = true;
+        showToast('Webcam active! Click "Capture ASL" to translate.', '🎥');
+      } catch (err) {
+        cameraActive = true;
+        hud.classList.remove('hidden');
+        document.getElementById('scanBar').classList.remove('hidden');
+        document.getElementById('cameraOverlayText').textContent = 'Interactive ASL Camera Simulator Active — Click "Capture ASL" below';
+        btnText.textContent = 'إيقاف المحاكي (Stop Sim)';
+        badge.textContent = '🟢 Virtual ASL Camera Active';
+        showToast('Virtual ASL Camera Simulator enabled!', '✨');
+      }
+    }
+
+    function captureCurrentSign() {
+      const nextKey = signKeys[currentSignIndex % signKeys.length];
+      currentSignIndex++;
+      triggerDeafSign(nextKey);
+    }
+
+    function triggerDeafSign(key) {
+      const item = signDictionary[key] || signDictionary.hello;
+      const handEmoji = document.getElementById('simulatedHandEmoji');
+      const output = document.getElementById('deafToEmployeeOutput');
+      const poseLabel = document.getElementById('detectedPoseLabel');
+      const hud = document.getElementById('hudOverlay');
+
+      hud.classList.remove('hidden');
+      poseLabel.textContent = item.label;
+
+      if (handEmoji) {
+        handEmoji.textContent = item.emoji;
+        handEmoji.classList.add('scale-125');
+        setTimeout(() => handEmoji.classList.remove('scale-125'), 300);
+      }
+
+      output.textContent = item.text;
+      output.classList.add('text-indigo-600', 'dark:text-teal-300');
+      setTimeout(() => output.classList.remove('text-indigo-600', 'dark:text-teal-300'), 650);
+
+      if (item.pose) {
+        setAvatarPose(item.pose);
+      }
+
+      speakEnglishText(item.text);
+      showToast(`Recognized ${item.label}`, item.emoji);
+    }
+
+    function speakDeafOutput() {
+      const text = document.getElementById('deafToEmployeeOutput').textContent.trim();
+      speakEnglishText(text);
+    }
+
+    function speakEnglishText(text) {
+      if (!('speechSynthesis' in window)) {
+        showToast('Speech synthesis not supported in this browser.', '💬');
+        return;
+      }
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      utterance.rate = 1.0;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function selectLocationContext(contextKey) {
+      document.getElementById('simulator').scrollIntoView({ behavior: 'smooth' });
+      setTimeout(() => {
+        triggerDeafSign(contextKey);
+        if (contextKey === 'bank') setAvatarPose('bank');
+        else if (contextKey === 'hospital') setAvatarPose('hospital');
+        else if (contextKey === 'gov') setAvatarPose('document');
+      }, 500);
+    }
+
+    // ============================================================================
+    // 3. REFINED ANATOMICAL ASL HAND, ORIENTATION & FACIAL GRAMMAR ENGINE
+    // Supports Palmar (palm facing viewer) vs. Dorsal (back of hand facing viewer),
+    // 3-Segment Phalanges, Thumb Opposition, Crossed Fingers (R), and Non-Manual Markers!
+    // ============================================================================
+    let avatarAnimationTimer = null;
+    let activePoseKey = 'idle';
+    let isZoomedHands = false;
+    let isSlowMotion = false;
+    let animPhase = 0;
+
+    // Anatomical finger dimensions
+    const fingerSpecs = {
+      index:  { x: -11.5, y: -14.5, l1: 11.2, l2: 8.6, l3: 6.8, w: 6.6, baseAngle: -7 },
+      middle: { x: -3.8,  y: -15.8, l1: 12.5, l2: 9.6, l3: 7.4, w: 6.9, baseAngle: -1 },
+      ring:   { x: 3.8,   y: -15.0, l1: 11.4, l2: 8.8, l3: 6.8, w: 6.6, baseAngle: 4 },
+      pinky:  { x: 11.2,  y: -13.0, l1: 9.2,  l2: 7.2, l3: 5.8, w: 5.8, baseAngle: 10 }
+    };
+
+    // Comprehensive ASL Handshape Presets (Covers all 26 ASL letters & core classifier shapes)
+    const fingerPresets = {
+      relaxed: {
+        mode: 'palmar',
+        thumb:  { curl: 0.22, spread: 8, across: 0 },
+        index:  { curl: 0.16, spread: -4, hook: 0 },
+        middle: { curl: 0.20, spread: 0, hook: 0 },
+        ring:   { curl: 0.25, spread: 4, hook: 0 },
+        pinky:  { curl: 0.30, spread: 8, hook: 0 }
+      },
+      // ASL 5-Hand (Open Spread Palm)
+      asl5Spread: {
+        mode: 'palmar',
+        thumb:  { curl: 0.0, spread: 26, across: 0 },
+        index:  { curl: 0.0, spread: -14, hook: 0 },
+        middle: { curl: 0.0, spread: -2, hook: 0 },
+        ring:   { curl: 0.0, spread: 9, hook: 0 },
+        pinky:  { curl: 0.0, spread: 21, hook: 0 }
+      },
+      // ASL B-Hand Palmar (Flat 4 fingers together, thumb folded across palm - Letter B, PLEASE)
+      aslBFlat: {
+        mode: 'palmar',
+        thumb:  { curl: 0.74, spread: -18, across: 1 },
+        index:  { curl: 0.0, spread: 3, hook: 0 },
+        middle: { curl: 0.0, spread: 0, hook: 0 },
+        ring:   { curl: 0.0, spread: -2, hook: 0 },
+        pinky:  { curl: 0.0, spread: -5, hook: 0 }
+      },
+      // ASL B-Hand Dorsal (Back of hand facing viewer, palm facing signer - THANK YOU start)
+      aslBDorsal: {
+        mode: 'dorsal',
+        thumb:  { curl: 0.55, spread: 8, across: 0 },
+        index:  { curl: 0.0, spread: 3, hook: 0 },
+        middle: { curl: 0.0, spread: 0, hook: 0 },
+        ring:   { curl: 0.0, spread: -2, hook: 0 },
+        pinky:  { curl: 0.0, spread: -5, hook: 0 }
+      },
+      // ASL A-Hand (Closed fist, thumb upright on outside of index - Letter A, HELP)
+      aslAFist: {
+        mode: 'palmar',
+        thumb:  { curl: 0.04, spread: 14, across: 0 },
+        index:  { curl: 0.98, spread: 0, hook: 0 },
+        middle: { curl: 0.98, spread: 0, hook: 0 },
+        ring:   { curl: 0.98, spread: 0, hook: 0 },
+        pinky:  { curl: 0.98, spread: 0, hook: 0 }
+      },
+      // ASL S-Hand (Closed fist, thumb locked horizontally across curled fingers - Letter S, YES)
+      aslSFist: {
+        mode: 'palmar',
+        thumb:  { curl: 0.68, spread: -24, across: 1 },
+        index:  { curl: 0.98, spread: 0, hook: 0 },
+        middle: { curl: 0.98, spread: 0, hook: 0 },
+        ring:   { curl: 0.98, spread: 0, hook: 0 },
+        pinky:  { curl: 0.98, spread: 0, hook: 0 }
+      },
+      // ASL T-Hand (Thumb tucked between Index and Middle)
+      aslTShape: {
+        mode: 'palmar',
+        thumb:  { curl: 0.35, spread: -6, across: 1 },
+        index:  { curl: 0.92, spread: -2, hook: 0 },
+        middle: { curl: 0.98, spread: 2, hook: 0 },
+        ring:   { curl: 0.98, spread: 3, hook: 0 },
+        pinky:  { curl: 0.98, spread: 4, hook: 0 }
+      },
+      // ASL N-Hand (Thumb tucked under Index and Middle)
+      aslNShape: {
+        mode: 'palmar',
+        thumb:  { curl: 0.55, spread: -16, across: 1 },
+        index:  { curl: 0.88, spread: 0, hook: 0 },
+        middle: { curl: 0.88, spread: 0, hook: 0 },
+        ring:   { curl: 0.98, spread: 2, hook: 0 },
+        pinky:  { curl: 0.98, spread: 4, hook: 0 }
+      },
+      // ASL M-Hand (Thumb tucked under Index, Middle, and Ring)
+      aslMShape: {
+        mode: 'palmar',
+        thumb:  { curl: 0.65, spread: -22, across: 1 },
+        index:  { curl: 0.86, spread: 0, hook: 0 },
+        middle: { curl: 0.86, spread: 0, hook: 0 },
+        ring:   { curl: 0.86, spread: 0, hook: 0 },
+        pinky:  { curl: 0.98, spread: 4, hook: 0 }
+      },
+      // ASL ILY Handshape (Thumb, Index, Pinky out; Middle & Ring curled)
+      aslILY: {
+        mode: 'palmar',
+        thumb:  { curl: 0.0,  spread: 28, across: 0 },
+        index:  { curl: 0.0,  spread: -10, hook: 0 },
+        middle: { curl: 0.96, spread: 0, hook: 0 },
+        ring:   { curl: 0.96, spread: 2, hook: 0 },
+        pinky:  { curl: 0.0,  spread: 20, hook: 0 }
+      },
+      // ASL L-Handshape (Thumb & Index at 90 degrees - Letter L, ID CARD)
+      aslLShape: {
+        mode: 'palmar',
+        thumb:  { curl: 0.0,  spread: 36, across: 0 },
+        index:  { curl: 0.0,  spread: -4, hook: 0 },
+        middle: { curl: 0.96, spread: 0, hook: 0 },
+        ring:   { curl: 0.96, spread: 2, hook: 0 },
+        pinky:  { curl: 0.98, spread: 4, hook: 0 }
+      },
+      // ASL G-Handshape (Index & Thumb parallel sideways)
+      aslGShape: {
+        mode: 'palmar',
+        thumb:  { curl: 0.15, spread: 18, across: 0 },
+        index:  { curl: 0.05, spread: -12, hook: 0 },
+        middle: { curl: 0.96, spread: 0, hook: 0 },
+        ring:   { curl: 0.98, spread: 2, hook: 0 },
+        pinky:  { curl: 0.98, spread: 4, hook: 0 }
+      },
+      // ASL D / 1 Handshape (Index straight up, Thumb touching Middle/Ring/Pinky)
+      aslDIndex: {
+        mode: 'palmar',
+        thumb:  { curl: 0.62, spread: -14, across: 1 },
+        index:  { curl: 0.0,  spread: -2, hook: 0 },
+        middle: { curl: 0.92, spread: 0, hook: 0 },
+        ring:   { curl: 0.95, spread: 2, hook: 0 },
+        pinky:  { curl: 0.98, spread: 4, hook: 0 }
+      },
+      // ASL X-Hook Handshape (Index crooked like a hook - Letter X, QUESTION)
+      aslXHook: {
+        mode: 'palmar',
+        thumb:  { curl: 0.72, spread: -16, across: 1 },
+        index:  { curl: 0.38, spread: -2, hook: 1.1 },
+        middle: { curl: 0.96, spread: 0, hook: 0 },
+        ring:   { curl: 0.98, spread: 2, hook: 0 },
+        pinky:  { curl: 0.98, spread: 4, hook: 0 }
+      },
+      // ASL V / 2 Handshape (Index & Middle spread in V)
+      aslVShape: {
+        mode: 'palmar',
+        thumb:  { curl: 0.72, spread: -16, across: 1 },
+        index:  { curl: 0.0,  spread: -12, hook: 0 },
+        middle: { curl: 0.0,  spread: 10, hook: 0 },
+        ring:   { curl: 0.96, spread: 2, hook: 0 },
+        pinky:  { curl: 0.98, spread: 4, hook: 0 }
+      },
+      // ASL K / P Handshape (Index up, Middle angled forward, Thumb between them)
+      aslKShape: {
+        mode: 'palmar',
+        thumb:  { curl: 0.25, spread: -4, across: 1 },
+        index:  { curl: 0.0,  spread: -10, hook: 0 },
+        middle: { curl: 0.22, spread: 8, hook: 0.4 },
+        ring:   { curl: 0.96, spread: 2, hook: 0 },
+        pinky:  { curl: 0.98, spread: 4, hook: 0 }
+      },
+      // ASL R-Handshape (Index and Middle crossed over each other)
+      aslRShape: {
+        mode: 'palmar',
+        thumb:  { curl: 0.72, spread: -16, across: 1 },
+        index:  { curl: 0.0,  spread: 11, hook: 0 },
+        middle: { curl: 0.0,  spread: -9, hook: 0 },
+        ring:   { curl: 0.96, spread: 2, hook: 0 },
+        pinky:  { curl: 0.98, spread: 4, hook: 0 }
+      },
+      // ASL U / H Handshape (Index & Middle extended together side-by-side)
+      aslUShape: {
+        mode: 'palmar',
+        thumb:  { curl: 0.72, spread: -16, across: 1 },
+        index:  { curl: 0.0,  spread: 3, hook: 0 },
+        middle: { curl: 0.0,  spread: -3, hook: 0 },
+        ring:   { curl: 0.96, spread: 2, hook: 0 },
+        pinky:  { curl: 0.98, spread: 4, hook: 0 }
+      },
+      // ASL F-Handshape (Thumb & Index pinched in circle, Middle/Ring/Pinky straight up)
+      aslFShape: {
+        mode: 'palmar',
+        thumb:  { curl: 0.52, spread: -12, across: 1 },
+        index:  { curl: 0.65, spread: -4, hook: 1 },
+        middle: { curl: 0.0,  spread: 2, hook: 0 },
+        ring:   { curl: 0.0,  spread: 8, hook: 0 },
+        pinky:  { curl: 0.0,  spread: 15, hook: 0 }
+      },
+      // ASL W / 6 Handshape (Index, Middle, Ring extended; Thumb touches Pinky)
+      aslWShape: {
+        mode: 'palmar',
+        thumb:  { curl: 0.72, spread: -16, across: 1 },
+        index:  { curl: 0.0,  spread: -12, hook: 0 },
+        middle: { curl: 0.0,  spread: 0, hook: 0 },
+        ring:   { curl: 0.0,  spread: 12, hook: 0 },
+        pinky:  { curl: 0.96, spread: 4, hook: 0 }
+      },
+      // ASL Y-Handshape (Thumb & Pinky extended wide; Index/Middle/Ring curled)
+      aslYShape: {
+        mode: 'palmar',
+        thumb:  { curl: 0.0,  spread: 32, across: 0 },
+        index:  { curl: 0.96, spread: 0, hook: 0 },
+        middle: { curl: 0.96, spread: 0, hook: 0 },
+        ring:   { curl: 0.96, spread: 2, hook: 0 },
+        pinky:  { curl: 0.0,  spread: 22, hook: 0 }
+      },
+      // ASL I / J Handshape (Pinky extended straight up)
+      aslIShape: {
+        mode: 'palmar',
+        thumb:  { curl: 0.68, spread: -16, across: 1 },
+        index:  { curl: 0.96, spread: 0, hook: 0 },
+        middle: { curl: 0.96, spread: 0, hook: 0 },
+        ring:   { curl: 0.96, spread: 2, hook: 0 },
+        pinky:  { curl: 0.0,  spread: 6, hook: 0 }
+      },
+      // ASL C-Handshape (Curved C arc)
+      aslCShape: {
+        mode: 'palmar',
+        thumb:  { curl: 0.35, spread: 18, across: 0 },
+        index:  { curl: 0.42, spread: -4, hook: 1 },
+        middle: { curl: 0.42, spread: 0, hook: 1 },
+        ring:   { curl: 0.44, spread: 4, hook: 1 },
+        pinky:  { curl: 0.46, spread: 8, hook: 1 }
+      },
+      // ASL O / Flattened-O Handshape (All fingertips meet thumb - Letter O, MONEY)
+      aslOShape: {
+        mode: 'palmar',
+        thumb:  { curl: 0.55, spread: -10, across: 1 },
+        index:  { curl: 0.62, spread: -3, hook: 1 },
+        middle: { curl: 0.62, spread: 0, hook: 1 },
+        ring:   { curl: 0.64, spread: 3, hook: 1 },
+        pinky:  { curl: 0.66, spread: 6, hook: 1 }
+      },
+      // ASL E-Handshape (Fingers hooked tightly resting on thumb ledge)
+      aslEShape: {
+        mode: 'palmar',
+        thumb:  { curl: 0.78, spread: -20, across: 1 },
+        index:  { curl: 0.78, spread: 0, hook: 1 },
+        middle: { curl: 0.78, spread: 0, hook: 1 },
+        ring:   { curl: 0.78, spread: 2, hook: 1 },
+        pinky:  { curl: 0.80, spread: 4, hook: 1 }
+      },
+      // ASL NO Pinch (Index & Middle snap onto thumb)
+      aslNoPinch: {
+        mode: 'palmar',
+        thumb:  { curl: 0.38, spread: -6, across: 1 },
+        index:  { curl: 0.32, spread: -5, hook: 0 },
+        middle: { curl: 0.32, spread: 4, hook: 0 },
+        ring:   { curl: 0.96, spread: 2, hook: 0 },
+        pinky:  { curl: 0.98, spread: 4, hook: 0 }
+      }
+    };
+
+    function cloneFingers(preset) {
+      return JSON.parse(JSON.stringify(preset));
+    }
+
+    // Authentic ASL Pose Library with Exact Anatomical Locations, Orientation & Non-Manual Facial Grammar
+    const avatarPoses = {
+      idle: {
+        name: '✨ ASL Ready Pose',
+        bannerText: '',
+        code: 'ASL',
+        title: 'Refined ASL Interpreter Ready',
+        howTo: 'Click any ASL sign button above, click A–Z letters to fingerspell, or enter an English sentence below.',
+        fingerDesc: '🖐️ Palmar & Dorsal ASL Rig • 30 Phalanges Ready',
+        emoji: '✨',
+        showProp: false,
+        motionPath: '',
+        brows: 'neutral',
+        rHand: { x: 112, y: 252, rot: -8 },
+        rElbow: { x: 88, y: 230 },
+        lHand: { x: 268, y: 252, rot: 8 },
+        lElbow: { x: 292, y: 230 },
+        rFingers: cloneFingers(fingerPresets.relaxed),
+        lFingers: cloneFingers(fingerPresets.relaxed),
+        headTilt: 0,
+        mouth: 'M178,119 Q190,128 202,119'
+      },
+      wave: {
+        name: '👋 ASL: HELLO (Temple Salute)',
+        bannerText: 'HELLO',
+        code: 'B/5 Salute',
+        title: 'ASL Sign: "HELLO" (Crisp Salute at Right Temple → Arcs Outward)',
+        howTo: 'Dominant right hand starts at the right eyebrow/temple (132, 82) in a flat/open salute and arcs outward to (94, 108).',
+        fingerDesc: '🖐️ Right B/5 Hand saluting from temple outward',
+        emoji: '👋',
+        showProp: false,
+        motionPath: 'M 134 86 Q 108 78 86 108',
+        brows: 'raise',
+        rHand: { x: 116, y: 98, rot: -20 },
+        rElbow: { x: 76, y: 176 },
+        lHand: { x: 264, y: 248, rot: 10 },
+        lElbow: { x: 290, y: 228 },
+        rFingers: cloneFingers(fingerPresets.asl5Spread),
+        lFingers: cloneFingers(fingerPresets.relaxed),
+        headTilt: -4,
+        mouth: 'M176,117 Q190,132 204,117'
+      },
+      thankyou: {
+        name: '🤲 ASL: THANK YOU (Chin → Out)',
+        bannerText: 'THANK YOU',
+        code: 'Flat-B',
+        title: 'ASL Sign: "THANK YOU" (Fingertips Touch Chin → Arc Forward)',
+        howTo: 'Dominant flat B-hand (dorsal view as palm faces signer) touches the chin (182, 138) and arcs forward/downward toward the viewer.',
+        fingerDesc: '✋ Dorsal Flat B-Hand moving from chin (182,138) forward',
+        emoji: '🤲',
+        showProp: true,
+        motionPath: 'M 184 140 Q 154 162 138 190',
+        brows: 'raise',
+        rHand: { x: 170, y: 152, rot: 16 },
+        rElbow: { x: 102, y: 214 },
+        lHand: { x: 264, y: 248, rot: 10 },
+        lElbow: { x: 290, y: 228 },
+        rFingers: cloneFingers(fingerPresets.aslBDorsal),
+        lFingers: cloneFingers(fingerPresets.relaxed),
+        headTilt: 4,
+        mouth: 'M176,117 Q190,132 204,117'
+      },
+      please: {
+        name: '✋ ASL: PLEASE (Circular Chest Rub)',
+        bannerText: 'PLEASE',
+        code: 'B-Chest',
+        title: 'ASL Sign: "PLEASE" (Flat Hand Rubbing Sternum in Clockwise Circle)',
+        howTo: 'Dominant flat hand rests against the center of the chest (186, 204) and rubs in a smooth clockwise circular path.',
+        fingerDesc: '✋ Flat B-Hand rubbing sternum in a clockwise circle',
+        emoji: '✋',
+        showProp: false,
+        motionPath: 'M 176 196 A 16 16 0 1 1 175 214',
+        brows: 'raise',
+        rHand: { x: 180, y: 204, rot: 32 },
+        rElbow: { x: 106, y: 228 },
+        lHand: { x: 264, y: 248, rot: 10 },
+        lElbow: { x: 290, y: 228 },
+        rFingers: cloneFingers(fingerPresets.aslBDorsal),
+        lFingers: cloneFingers(fingerPresets.relaxed),
+        headTilt: 5,
+        mouth: 'M177,118 Q190,130 203,118'
+      },
+      help: {
+        name: '👍 ASL: HELP (A-Fist on Flat Palm)',
+        bannerText: 'HELP / ASSIST',
+        code: 'A-on-B',
+        title: 'ASL Sign: "HELP" (Closed A-Fist Resting on Open Base Palm, Lifting Upward)',
+        howTo: 'Right hand forms a vertical ASL "A" fist (thumb up) resting directly on the flat upturned left palm; both lift upward together.',
+        fingerDesc: '👍 Right A-Fist supported by Left Flat B-Palm lifting upward',
+        emoji: '👍',
+        showProp: true,
+        motionPath: 'M 190 226 L 190 176',
+        brows: 'raise',
+        rHand: { x: 178, y: 198, rot: -12 },
+        rElbow: { x: 106, y: 230 },
+        lHand: { x: 202, y: 212, rot: -62 },
+        lElbow: { x: 276, y: 236 },
+        rFingers: cloneFingers(fingerPresets.aslAFist),
+        lFingers: cloneFingers(fingerPresets.aslBFlat),
+        headTilt: 3,
+        mouth: 'M177,118 Q190,130 203,118'
+      },
+      welcome: {
+        name: '🤲 ASL: WELCOME (Sweep Inward)',
+        bannerText: 'WELCOME',
+        code: 'B-Sweep',
+        title: 'ASL Sign: "WELCOME" (Open B-Hand Sweeps Inward Toward Torso)',
+        howTo: 'Dominant open B-hand starts out to the side and arcs smoothly inward toward the chest.',
+        fingerDesc: '🤲 Open B-Hand sweeping in an inviting arc toward chest',
+        emoji: '🤲',
+        showProp: true,
+        motionPath: 'M 106 184 Q 140 204 172 198',
+        brows: 'raise',
+        rHand: { x: 140, y: 196, rot: 20 },
+        rElbow: { x: 96, y: 224 },
+        lHand: { x: 256, y: 242, rot: 10 },
+        lElbow: { x: 286, y: 226 },
+        rFingers: cloneFingers(fingerPresets.aslBFlat),
+        lFingers: cloneFingers(fingerPresets.relaxed),
+        headTilt: 4,
+        mouth: 'M176,117 Q190,132 204,117'
+      },
+      heart: {
+        name: '🤟 ASL: ILY (I Love You)',
+        bannerText: 'ILY (I Love You)',
+        code: 'I-L-Y',
+        title: 'ASL Sign: "ILY" (Simultaneous ASL Letters I + L + Y)',
+        howTo: 'Thumb, Index, and Pinky are fully extended while Middle and Ring fingers curl tightly into the palm.',
+        fingerDesc: '🤟 Palmar ILY: Thumb + Index + Pinky extended, Middle & Ring curled',
+        emoji: '🤟',
+        showProp: true,
+        motionPath: '',
+        brows: 'raise',
+        rHand: { x: 126, y: 176, rot: -8 },
+        rElbow: { x: 90, y: 216 },
+        lHand: { x: 254, y: 176, rot: 8 },
+        lElbow: { x: 290, y: 216 },
+        rFingers: cloneFingers(fingerPresets.aslILY),
+        lFingers: cloneFingers(fingerPresets.aslILY),
+        headTilt: 5,
+        mouth: 'M176,117 Q190,133 204,117'
+      },
+      yes: {
+        name: '✊ ASL: YES (S-Hand Wrist Nod)',
+        bannerText: 'YES',
+        code: 'S-Nod',
+        title: 'ASL Sign: "YES" (S-Hand Fist Flexing Up and Down at the Wrist)',
+        howTo: 'Dominant right hand forms a tight ASL "S" fist and nods up and down at the wrist accompanied by an affirmative head nod.',
+        fingerDesc: '✊ ASL S-Fist nodding at the wrist joint + affirmative head nod',
+        emoji: '✅',
+        showProp: true,
+        motionPath: 'M 122 156 Q 110 174 122 192',
+        brows: 'raise',
+        rHand: { x: 124, y: 172, rot: -8 },
+        rElbow: { x: 90, y: 214 },
+        lHand: { x: 262, y: 246, rot: 10 },
+        lElbow: { x: 288, y: 226 },
+        rFingers: cloneFingers(fingerPresets.aslSFist),
+        lFingers: cloneFingers(fingerPresets.relaxed),
+        headTilt: 5,
+        mouth: 'M176,117 Q190,133 204,117'
+      },
+      no: {
+        name: '🤏 ASL: NO (U-to-Pinch Snap)',
+        bannerText: 'NO',
+        code: 'U→Pinch',
+        title: 'ASL Sign: "NO" (Index & Middle Fingers Snap Closed Against Thumb)',
+        howTo: 'Extended Index and Middle fingers rapidly snap closed against the extended thumb tip with a subtle negative head shake.',
+        fingerDesc: '🤏 Index & Middle fingers snapping onto Thumb + negative head shake',
+        emoji: '🚫',
+        showProp: true,
+        motionPath: '',
+        brows: 'furrow',
+        rHand: { x: 126, y: 172, rot: 14 },
+        rElbow: { x: 92, y: 214 },
+        lHand: { x: 262, y: 246, rot: 10 },
+        lElbow: { x: 288, y: 226 },
+        rFingers: cloneFingers(fingerPresets.aslNoPinch),
+        lFingers: cloneFingers(fingerPresets.relaxed),
+        headTilt: -4,
+        mouth: 'M180,123 Q190,118 200,123'
+      },
+      document: {
+        name: '🪪 ASL: ID CARD / LICENSE (L-Frames)',
+        bannerText: 'ID CARD',
+        code: 'L+L Tap',
+        title: 'ASL Sign: "ID CARD / LICENSE" (Both Hands in L-Shapes Tapping Thumbs)',
+        howTo: 'Both hands form crisp ASL "L" shapes facing forward and tap their thumb tips together twice to frame an ID badge.',
+        fingerDesc: '🪪 Symmetrical ASL L-Hands framing an ID card',
+        emoji: '🪪',
+        showProp: true,
+        motionPath: '',
+        brows: 'neutral',
+        rHand: { x: 144, y: 184, rot: 14 },
+        rElbow: { x: 96, y: 218 },
+        lHand: { x: 236, y: 184, rot: -14 },
+        lElbow: { x: 284, y: 218 },
+        rFingers: cloneFingers(fingerPresets.aslLShape),
+        lFingers: cloneFingers(fingerPresets.aslLShape),
+        headTilt: 0,
+        mouth: 'M179,120 Q190,126 201,120'
+      },
+      question: {
+        name: '☝️ ASL: QUESTION / ASK (X-Hook)',
+        bannerText: 'QUESTION ?',
+        code: '1→X Hook',
+        title: 'ASL Sign: "QUESTION / ASK" (Index Draws Question Mark + Raised Brows)',
+        howTo: 'Right Index finger flexes between straight "1" and hooked "X" while eyebrows raise in ASL interrogative grammar.',
+        fingerDesc: '☝️ Index flexing into X-Hook + Interrogative Eyebrow Raise',
+        emoji: '❓',
+        showProp: true,
+        motionPath: 'M 124 142 Q 140 154 126 170',
+        brows: 'raise',
+        rHand: { x: 126, y: 164, rot: -6 },
+        rElbow: { x: 92, y: 210 },
+        lHand: { x: 260, y: 242, rot: 8 },
+        lElbow: { x: 286, y: 224 },
+        rFingers: cloneFingers(fingerPresets.aslXHook),
+        lFingers: cloneFingers(fingerPresets.relaxed),
+        headTilt: -5,
+        mouth: 'M183,121 A 6 5 0 1 1 197 121 A 6 5 0 1 1 183 121'
+      },
+      what: {
+        name: '🤷 ASL: WHAT / WHERE (WH-Question)',
+        bannerText: 'WHAT / WHERE',
+        code: '5-Palms Up',
+        title: 'ASL Sign: "WHAT" (Both Open 5-Hands Palms Up Sweeping Side-to-Side + Furrowed Brows)',
+        howTo: 'Both open 5-hands turn palms-up in front of the chest and shake horizontally while eyebrows furrow (authentic ASL WH-Question grammar).',
+        fingerDesc: '🤷 Both 5-Hands oscillating horizontally + WH-Question Furrowed Brows',
+        emoji: '🤷',
+        showProp: true,
+        motionPath: 'M 110 198 L 154 198',
+        brows: 'furrow',
+        rHand: { x: 132, y: 196, rot: -18 },
+        rElbow: { x: 92, y: 224 },
+        lHand: { x: 248, y: 196, rot: 18 },
+        lElbow: { x: 288, y: 224 },
+        rFingers: cloneFingers(fingerPresets.asl5Spread),
+        lFingers: cloneFingers(fingerPresets.asl5Spread),
+        headTilt: -4,
+        mouth: 'M182,122 Q190,117 198,122'
+      },
+      bank: {
+        name: '🏦 ASL: MONEY / BANK (O-Hand Taps Palm)',
+        bannerText: 'MONEY / BANK',
+        code: 'Flat-O',
+        title: 'ASL Sign: "MONEY" (Flattened-O Hand Taps Twice into Upturned Base Palm)',
+        howTo: 'Right hand forms a flattened "O" (all fingertips pinched to thumb) and taps twice onto the upturned flat left palm.',
+        fingerDesc: '🤌 Right Flattened-O tapping twice onto Left Flat B-Palm',
+        emoji: '🏦',
+        showProp: true,
+        motionPath: 'M 164 166 L 184 198',
+        brows: 'neutral',
+        rHand: { x: 170, y: 190, rot: 24 },
+        rElbow: { x: 102, y: 222 },
+        lHand: { x: 208, y: 208, rot: -55 },
+        lElbow: { x: 278, y: 234 },
+        rFingers: cloneFingers(fingerPresets.aslOShape),
+        lFingers: cloneFingers(fingerPresets.aslBFlat),
+        headTilt: 3,
+        mouth: 'M177,118 Q190,130 203,118'
+      },
+      hospital: {
+        name: '🏥 ASL: DOCTOR (D/M Taps Wrist Pulse)',
+        bannerText: 'DOCTOR',
+        code: 'D-on-Wrist',
+        title: 'ASL Sign: "DOCTOR" (Dominant Hand Taps the Upturned Left Wrist Pulse)',
+        howTo: 'Left forearm turns palm-up exposing the inner wrist; dominant right hand taps the radial pulse point twice.',
+        fingerDesc: '🏥 Right hand tapping the radial pulse point on Left inner wrist',
+        emoji: '🏥',
+        showProp: true,
+        motionPath: 'M 172 174 L 198 202',
+        brows: 'neutral',
+        rHand: { x: 178, y: 194, rot: 36 },
+        rElbow: { x: 106, y: 224 },
+        lHand: { x: 208, y: 208, rot: -45 },
+        lElbow: { x: 276, y: 232 },
+        rFingers: cloneFingers(fingerPresets.aslMShape),
+        lFingers: cloneFingers(fingerPresets.aslSFist),
+        headTilt: -2,
+        mouth: 'M178,119 Q190,128 202,119'
+      },
+      name: {
+        name: '✌️ ASL: NAME (Two H-Hands Tap Together)',
+        bannerText: 'NAME',
+        code: 'H-on-H',
+        title: 'ASL Sign: "NAME" (Dominant H-Fingers Tap Twice Across Base H-Fingers)',
+        howTo: 'Both hands form the ASL "H" handshape (Index and Middle extended together sideways) and tap their middle edges together twice.',
+        fingerDesc: '✌️ Both hands in ASL H-Shape tapping together at center chest',
+        emoji: '✌️',
+        showProp: true,
+        motionPath: 'M 168 174 L 188 196',
+        brows: 'raise',
+        rHand: { x: 172, y: 192, rot: 48 },
+        rElbow: { x: 104, y: 224 },
+        lHand: { x: 208, y: 198, rot: -48 },
+        lElbow: { x: 276, y: 226 },
+        rFingers: cloneFingers(fingerPresets.aslUShape),
+        lFingers: cloneFingers(fingerPresets.aslUShape),
+        headTilt: 2,
+        mouth: 'M178,119 Q190,128 202,119'
+      },
+      ok: {
+        name: '👍 ASL: READY / GOOD',
+        bannerText: 'READY / GOOD',
+        code: 'A-Up',
+        title: 'ASL Sign: "GOOD / READY" (Clear Affirmative Thumbs-Up)',
+        howTo: 'Both hands form crisp upright ASL A-handshapes in front of the shoulders.',
+        fingerDesc: '👍 Both hands in crisp ASL A-Handshape',
+        emoji: '👍',
+        showProp: true,
+        motionPath: '',
+        brows: 'raise',
+        rHand: { x: 122, y: 174, rot: -10 },
+        rElbow: { x: 88, y: 212 },
+        lHand: { x: 258, y: 174, rot: 10 },
+        lElbow: { x: 292, y: 212 },
+        rFingers: cloneFingers(fingerPresets.aslAFist),
+        lFingers: cloneFingers(fingerPresets.aslAFist),
+        headTilt: 4,
+        mouth: 'M175,116 Q190,134 205,116'
+      }
+    };
+
+    const rigState = {
+      rHand: { x: 112, y: 252, rot: -8 },
+      rElbow: { x: 88, y: 230 },
+      lHand: { x: 268, y: 252, rot: 8 },
+      lElbow: { x: 292, y: 230 },
+      rFingers: cloneFingers(fingerPresets.relaxed),
+      lFingers: cloneFingers(fingerPresets.relaxed),
+      headTilt: 0,
+      headNodY: 0,
+      headShakeX: 0
+    };
+
+    let rigTarget = JSON.parse(JSON.stringify(rigState));
+
+    // Renders a Refined Anatomical 3-Phalanx Hand with Palmar vs. Dorsal Orientation & Wrist Joint
+    function buildArticulatedHandSVG(fingers, isLeftHand) {
+      const dir = isLeftHand ? -1 : 1;
+      const isDorsal = fingers.mode === 'dorsal';
+      const palmFill = isDorsal ? 'url(#dorsalSkinGrad)' : 'url(#skinGrad)';
+
+      let svg = `<g transform="scale(1.32)">`;
+
+      // Anatomical Wrist & Crisp Interpreter Cuff
+      svg += `<rect x="-10" y="6" width="20" height="8" rx="4" fill="url(#skinGrad)" stroke="#b46945" stroke-width="1.1" />`;
+      svg += `<rect x="-13.5" y="10" width="27" height="7.5" rx="3.8" fill="#14b8a6" stroke="#0f766e" stroke-width="1.2" />`;
+
+      // 1. Render Extended / Partially Curled 3-Segment Fingers
+      const order = ['pinky', 'ring', 'middle', 'index'];
+      for (const fName of order) {
+        const spec = fingerSpecs[fName];
+        const fState = fingers[fName] || { curl: 0, spread: 0, hook: 0 };
+        const curl = Math.max(0, Math.min(1, fState.curl));
+        const spread = fState.spread || 0;
+        const isHook = fState.hook || 0;
+
+        const baseX = spec.x * dir;
+        const baseY = spec.y;
+        const totalSpreadAngle = (spec.baseAngle + spread) * dir;
+
+        const p1Len = spec.l1 * (1 - curl * 0.52);
+        const p2Len = spec.l2 * (1 - curl * 0.62);
+        const p3Len = spec.l3 * (1 - curl * 0.68);
+
+        const foldOffsetY = curl > 0.52 ? (curl - 0.52) * 28 : 0;
+        const pipAngle = (curl * 18 + isHook * 22) * dir;
+        const dipAngle = (curl * 22 + isHook * 28) * dir;
+
+        // Fingernails are prominent on extended fingers in Dorsal view, or on curled fingertips in Palmar view
+        const showExtendedNail = isDorsal ? (curl < 0.45 ? 0.92 : 0.2) : (curl > 0.6 ? 0.85 : 0.35);
+
+        svg += `
+          <g transform="translate(${baseX.toFixed(1)}, ${baseY.toFixed(1)}) rotate(${totalSpreadAngle.toFixed(1)})">
+            <circle cx="0" cy="0" r="${(spec.w * 0.5).toFixed(1)}" fill="#eab08e" opacity="0.7" />
+            <!-- Proximal Phalanx -->
+            <rect x="${(-spec.w / 2).toFixed(1)}" y="${(-p1Len + foldOffsetY).toFixed(1)}" width="${spec.w}" height="${(p1Len + 3).toFixed(1)}" rx="${(spec.w / 2).toFixed(1)}" fill="${palmFill}" stroke="#a85d39" stroke-width="1.3" />
+            <line x1="${(-spec.w * 0.34).toFixed(1)}" y1="${(-p1Len + foldOffsetY + 1.2).toFixed(1)}" x2="${(spec.w * 0.34).toFixed(1)}" y2="${(-p1Len + foldOffsetY + 1.2).toFixed(1)}" stroke="#9a502e" stroke-width="1.2" stroke-linecap="round" />
+            
+            <!-- Middle Phalanx -->
+            <g transform="translate(0, ${(-p1Len + foldOffsetY).toFixed(1)}) rotate(${pipAngle.toFixed(1)})">
+              <rect x="${(-spec.w * 0.47).toFixed(1)}" y="${(-p2Len).toFixed(1)}" width="${(spec.w * 0.94).toFixed(1)}" height="${(p2Len + 2.5).toFixed(1)}" rx="${(spec.w * 0.47).toFixed(1)}" fill="${palmFill}" stroke="#a85d39" stroke-width="1.25" />
+              <line x1="${(-spec.w * 0.3).toFixed(1)}" y1="${(-p2Len + 1.2).toFixed(1)}" x2="${(spec.w * 0.3).toFixed(1)}" y2="${(-p2Len + 1.2).toFixed(1)}" stroke="#9a502e" stroke-width="1.1" stroke-linecap="round" />
+              
+              <!-- Distal Phalanx + Anatomical Fingernail -->
+              <g transform="translate(0, ${(-p2Len).toFixed(1)}) rotate(${dipAngle.toFixed(1)})">
+                <rect x="${(-spec.w * 0.43).toFixed(1)}" y="${(curl > 0.65 ? 0 : -p3Len).toFixed(1)}" width="${(spec.w * 0.86).toFixed(1)}" height="${(p3Len + 2).toFixed(1)}" rx="${(spec.w * 0.43).toFixed(1)}" fill="#ffe8cf" stroke="#a85d39" stroke-width="1.25" />
+                <rect x="${(-spec.w * 0.28).toFixed(1)}" y="${(curl > 0.65 ? p3Len * 0.4 : -p3Len + 1.1).toFixed(1)}" width="${(spec.w * 0.56).toFixed(1)}" height="${(spec.w * 0.48).toFixed(1)}" rx="1.5" fill="#fff9f5" stroke="#d99570" stroke-width="0.7" opacity="${showExtendedNail}" />
+              </g>
+            </g>
+          </g>
+        `;
+      }
+
+      // 2. Render Anatomical Palm (Palmar Creases vs. Dorsal Knuckle Tendons)
+      svg += `<rect x="-15.8" y="-14.5" width="31.6" height="25.5" rx="11" fill="${palmFill}" stroke="#a85d39" stroke-width="1.6" />`;
+
+      if (isDorsal) {
+        // Dorsal View: 4 subtle MCP knuckle ridges and back-of-hand tendons
+        svg += `
+          <circle cx="${(-11 * dir).toFixed(1)}" cy="-11.5" r="2.1" fill="#d98a5c" opacity="0.65" />
+          <circle cx="${(-3.8 * dir).toFixed(1)}" cy="-12.2" r="2.2" fill="#d98a5c" opacity="0.65" />
+          <circle cx="${(3.8 * dir).toFixed(1)}" cy="-11.8" r="2.1" fill="#d98a5c" opacity="0.65" />
+          <circle cx="${(10.8 * dir).toFixed(1)}" cy="-10.5" r="1.9" fill="#d98a5c" opacity="0.65" />
+          <line x1="${(-3.8 * dir).toFixed(1)}" y1="-9" x2="${(-2.5 * dir).toFixed(1)}" y2="4" stroke="#c87a4e" stroke-width="1.1" stroke-linecap="round" opacity="0.55" />
+          <line x1="${(3.8 * dir).toFixed(1)}" y1="-9" x2="${(2.5 * dir).toFixed(1)}" y2="4" stroke="#c87a4e" stroke-width="1.1" stroke-linecap="round" opacity="0.55" />
+        `;
+      } else {
+        // Palmar View: Lifelines and Thenar Eminence crease
+        svg += `
+          <path d="M ${(-9.5 * dir).toFixed(1)} -4.5 Q 0 1.5 ${(10 * dir).toFixed(1)} -2.5" fill="none" stroke="#bf734d" stroke-width="1.35" stroke-linecap="round" opacity="0.85" />
+          <path d="M ${(-3 * dir).toFixed(1)} -1 Q ${(-7.5 * dir).toFixed(1)} 4.5 ${(-4.2 * dir).toFixed(1)} 9.2" fill="none" stroke="#bf734d" stroke-width="1.25" stroke-linecap="round" opacity="0.75" />
+        `;
+      }
+
+      // 3. Foreground Folded Phalanges (Palmar view only: when fingers curl into the palm)
+      if (!isDorsal) {
+        for (const fName of ['index', 'middle', 'ring', 'pinky']) {
+          const spec = fingerSpecs[fName];
+          const fState = fingers[fName] || { curl: 0, spread: 0 };
+          if (fState.curl > 0.58) {
+            const baseX = spec.x * dir;
+            const foldDepth = (fState.curl - 0.58) * 16;
+            svg += `
+              <g transform="translate(${baseX.toFixed(1)}, ${(-11.5 + foldDepth).toFixed(1)})">
+                <rect x="${(-spec.w * 0.48).toFixed(1)}" y="-4.5" width="${(spec.w * 0.96).toFixed(1)}" height="12.5" rx="${(spec.w * 0.46).toFixed(1)}" fill="#ffe4c4" stroke="#a85d39" stroke-width="1.4" />
+                <line x1="${(-spec.w * 0.32).toFixed(1)}" y1="1.5" x2="${(spec.w * 0.32).toFixed(1)}" y2="1.5" stroke="#a85d39" stroke-width="1.2" stroke-linecap="round" />
+                <rect x="${(-spec.w * 0.28).toFixed(1)}" y="3.6" width="${(spec.w * 0.56).toFixed(1)}" height="3.2" rx="1.4" fill="#fff7f0" opacity="0.85" />
+              </g>
+            `;
+          }
+        }
+      }
+
+      // 4. Multi-Joint Articulated Thumb
+      const tState = fingers.thumb || { curl: 0.2, spread: 0, across: 0 };
+      const tCurl = Math.max(0, Math.min(1, tState.curl));
+      const tSpread = tState.spread || 0;
+      const tAcross = tState.across || 0;
+
+      const thumbMountX = (-13.5 + tAcross * 4.8) * dir;
+      const thumbMountY = -1.0 + tAcross * 2.2;
+      const thumbProxAngle = (-36 + tCurl * 96 - tSpread) * dir;
+      const thumbDistAngle = (tCurl * 48) * dir;
+
+      svg += `
+        <g transform="translate(${thumbMountX.toFixed(1)}, ${thumbMountY.toFixed(1)}) rotate(${thumbProxAngle.toFixed(1)})">
+          <circle cx="0" cy="0" r="3.8" fill="#eab08e" opacity="0.6" />
+          <rect x="-3.7" y="-11.5" width="7.4" height="13.5" rx="3.7" fill="${palmFill}" stroke="#a85d39" stroke-width="1.4" />
+          <line x1="-2.2" y1="-9.8" x2="2.2" y2="-9.8" stroke="#9a502e" stroke-width="1.2" stroke-linecap="round" />
+          <g transform="translate(0, -10.5) rotate(${thumbDistAngle.toFixed(1)})">
+            <rect x="-3.4" y="-10" width="6.8" height="11" rx="3.4" fill="#ffe8cf" stroke="#a85d39" stroke-width="1.4" />
+            <circle cx="0" cy="-6.8" r="1.9" fill="#fff9f5" opacity="0.88" />
+          </g>
+        </g>
+      `;
+
+      svg += `</g>`;
+      return svg;
+    }
+
+    function lerp(a, b, t) {
+      return a + (b - a) * t;
+    }
+
+    function toggleSlowMotion() {
+      isSlowMotion = !isSlowMotion;
+      const btnText = document.getElementById('slowMoText');
+      if (isSlowMotion) {
+        btnText.textContent = 'Slow-Mo: ON 🐢';
+        showToast('Slow-Motion ON: Inspect every ASL joint & orientation!', '🐢');
+      } else {
+        btnText.textContent = 'Slow-Mo: OFF';
+        showToast('Standard ASL interpreter speed restored.', '⚡');
+      }
+    }
+
+    function animateAvatarRig() {
+      const speedMult = isSlowMotion ? 0.35 : 1.0;
+      animPhase += 0.088 * speedMult;
+      const ease = isSlowMotion ? 0.09 : 0.22;
+
+      let rOffsetX = 0, rOffsetY = 0, rRot = 0;
+      let lOffsetX = 0, lOffsetY = 0, lRot = 0;
+      let headNodY = 0, headShakeX = 0;
+      let dynamicFingerDelta = { thumb: 0, index: 0, middle: 0, ring: 0, pinky: 0 };
+
+      // Authentic ASL Dynamic Motion Signatures per Sign
+      if (activePoseKey === 'wave') {
+        // ASL HELLO: Crisp salute at temple arcing outward
+        const saluteArc = (Math.sin(animPhase * 1.7) + 1) * 0.5;
+        rOffsetX = -saluteArc * 22;
+        rOffsetY = saluteArc * 10;
+        rRot = -saluteArc * 16;
+      } else if (activePoseKey === 'thankyou') {
+        // ASL THANK YOU: Flat B-hand touches chin and arcs forward/downward
+        const arc = (Math.sin(animPhase * 1.7) + 1) * 0.5;
+        rOffsetX = -arc * 24;
+        rOffsetY = arc * 26;
+        rRot = -arc * 18;
+      } else if (activePoseKey === 'please') {
+        // ASL PLEASE: Smooth clockwise circular rub on chest
+        rOffsetX = Math.cos(animPhase * 2.1) * 12;
+        rOffsetY = Math.sin(animPhase * 2.1) * 12;
+        rRot = Math.sin(animPhase * 2.1) * 6;
+      } else if (activePoseKey === 'help') {
+        // ASL HELP: Both hands lift upward together twice
+        const lift = -Math.abs(Math.sin(animPhase * 1.9)) * 18;
+        rOffsetY = lift;
+        lOffsetY = lift;
+      } else if (activePoseKey === 'yes') {
+        // ASL YES: S-Fist nods at the wrist + Affirmative Head Nod
+        const nod = Math.sin(animPhase * 2.8);
+        rOffsetY = nod * 9;
+        rRot = nod * 24;
+        headNodY = nod * 4.5;
+      } else if (activePoseKey === 'no') {
+        // ASL NO: Index & Middle snap onto thumb + Negative Head Shake
+        const snap = (Math.sin(animPhase * 3.4) + 1) * 0.24;
+        dynamicFingerDelta.index  = snap;
+        dynamicFingerDelta.middle = snap;
+        dynamicFingerDelta.thumb  = snap * 0.7;
+        headShakeX = Math.sin(animPhase * 3.4) * 5;
+      } else if (activePoseKey === 'document') {
+        // ASL ID CARD: Both L-hands tap inward slightly twice
+        const tap = Math.abs(Math.sin(animPhase * 2.4)) * 6;
+        rOffsetX = tap;
+        lOffsetX = -tap;
+      } else if (activePoseKey === 'question') {
+        // ASL QUESTION: Index flexes repeatedly between 1 and X-hook
+        const hookPulse = (Math.sin(animPhase * 2.8) + 1) * 0.26;
+        dynamicFingerDelta.index = hookPulse;
+        rOffsetY = Math.sin(animPhase * 2.8) * 5;
+      } else if (activePoseKey === 'what') {
+        // ASL WHAT: Both open 5-hands oscillate side-to-side horizontally
+        const sway = Math.sin(animPhase * 2.6) * 11;
+        rOffsetX = -sway;
+        lOffsetX = sway;
+        headShakeX = sway * 0.3;
+      } else if (activePoseKey === 'bank') {
+        // ASL MONEY / BANK: Flattened-O taps twice onto upturned left palm
+        rOffsetY = -Math.abs(Math.sin(animPhase * 2.6)) * 15;
+      } else if (activePoseKey === 'hospital') {
+        // ASL DOCTOR: Dominant hand taps radial pulse on upturned left wrist
+        rOffsetY = -Math.abs(Math.sin(animPhase * 2.5)) * 12;
+      } else if (activePoseKey === 'name') {
+        // ASL NAME: Dominant H-fingers tap twice on top of base H-fingers
+        rOffsetY = -Math.abs(Math.sin(animPhase * 2.7)) * 12;
+      } else if (activePoseKey === 'asl_letter_j') {
+        // ASL Letter J: Pinky traces a 'J' hook in the air
+        rOffsetX = Math.sin(animPhase * 2.2) * 8;
+        rOffsetY = Math.cos(animPhase * 2.2) * 8;
+        rRot = Math.sin(animPhase * 2.2) * 18;
+      } else if (activePoseKey === 'asl_letter_z') {
+        // ASL Letter Z: Index traces a 'Z' zig-zag in the air
+        rOffsetX = Math.sin(animPhase * 2.4) * 12;
+        rOffsetY = Math.cos(animPhase * 1.2) * 6;
+      }
+
+      rigState.rHand.x = lerp(rigState.rHand.x, rigTarget.rHand.x + rOffsetX, ease);
+      rigState.rHand.y = lerp(rigState.rHand.y, rigTarget.rHand.y + rOffsetY, ease);
+      rigState.rHand.rot = lerp(rigState.rHand.rot, rigTarget.rHand.rot + rRot, ease);
+      rigState.rElbow.x = lerp(rigState.rElbow.x, rigTarget.rElbow.x + rOffsetX * 0.35, ease);
+      rigState.rElbow.y = lerp(rigState.rElbow.y, rigTarget.rElbow.y + rOffsetY * 0.35, ease);
+
+      rigState.lHand.x = lerp(rigState.lHand.x, rigTarget.lHand.x + lOffsetX, ease);
+      rigState.lHand.y = lerp(rigState.lHand.y, rigTarget.lHand.y + lOffsetY, ease);
+      rigState.lHand.rot = lerp(rigState.lHand.rot, rigTarget.lHand.rot + lRot, ease);
+      rigState.lElbow.x = lerp(rigState.lElbow.x, rigTarget.lElbow.x + lOffsetX * 0.35, ease);
+      rigState.lElbow.y = lerp(rigState.lElbow.y, rigTarget.lElbow.y + lOffsetY * 0.35, ease);
+
+      rigState.headTilt = lerp(rigState.headTilt, rigTarget.headTilt, ease);
+      rigState.headNodY = lerp(rigState.headNodY, headNodY, ease);
+      rigState.headShakeX = lerp(rigState.headShakeX, headShakeX, ease);
+
+      rigState.rFingers.mode = rigTarget.rFingers.mode || 'palmar';
+      rigState.lFingers.mode = rigTarget.lFingers.mode || 'palmar';
+
+      for (const fName of ['thumb', 'index', 'middle', 'ring', 'pinky']) {
+        const targetRCurl = Math.max(0, Math.min(1, rigTarget.rFingers[fName].curl + (dynamicFingerDelta[fName] || 0)));
+        rigState.rFingers[fName].curl = lerp(rigState.rFingers[fName].curl, targetRCurl, ease);
+        rigState.rFingers[fName].spread = lerp(rigState.rFingers[fName].spread, rigTarget.rFingers[fName].spread, ease);
+        rigState.rFingers[fName].across = lerp(rigState.rFingers[fName].across || 0, rigTarget.rFingers[fName].across || 0, ease);
+        rigState.rFingers[fName].hook = lerp(rigState.rFingers[fName].hook || 0, rigTarget.rFingers[fName].hook || 0, ease);
+
+        rigState.lFingers[fName].curl = lerp(rigState.lFingers[fName].curl, rigTarget.lFingers[fName].curl, ease);
+        rigState.lFingers[fName].spread = lerp(rigState.lFingers[fName].spread, rigTarget.lFingers[fName].spread, ease);
+        rigState.lFingers[fName].across = lerp(rigState.lFingers[fName].across || 0, rigTarget.lFingers[fName].across || 0, ease);
+        rigState.lFingers[fName].hook = lerp(rigState.lFingers[fName].hook || 0, rigTarget.lFingers[fName].hook || 0, ease);
+      }
+
+      // Update Two-Segment Anatomical Arms (Upper Arm + Elbow Joint + Forearm)
+      const rUpper = document.getElementById('rightUpperArm');
+      const rElbow = document.getElementById('rightElbowJoint');
+      const rFore  = document.getElementById('rightForearm');
+      const lUpper = document.getElementById('leftUpperArm');
+      const lElbow = document.getElementById('leftElbowJoint');
+      const lFore  = document.getElementById('leftForearm');
+      const rightHand = document.getElementById('rightHandGroup');
+      const leftHand  = document.getElementById('leftHandGroup');
+      const head      = document.getElementById('avatarHead');
+
+      if (rUpper && rElbow && rFore && lUpper && lElbow && lFore && rightHand && leftHand) {
+        rUpper.setAttribute('x2', rigState.rElbow.x.toFixed(1));
+        rUpper.setAttribute('y2', rigState.rElbow.y.toFixed(1));
+        rElbow.setAttribute('cx', rigState.rElbow.x.toFixed(1));
+        rElbow.setAttribute('cy', rigState.rElbow.y.toFixed(1));
+        rFore.setAttribute('x1', rigState.rElbow.x.toFixed(1));
+        rFore.setAttribute('y1', rigState.rElbow.y.toFixed(1));
+        rFore.setAttribute('x2', rigState.rHand.x.toFixed(1));
+        rFore.setAttribute('y2', rigState.rHand.y.toFixed(1));
+
+        lUpper.setAttribute('x2', rigState.lElbow.x.toFixed(1));
+        lUpper.setAttribute('y2', rigState.lElbow.y.toFixed(1));
+        lElbow.setAttribute('cx', rigState.lElbow.x.toFixed(1));
+        lElbow.setAttribute('cy', rigState.lElbow.y.toFixed(1));
+        lFore.setAttribute('x1', rigState.lElbow.x.toFixed(1));
+        lFore.setAttribute('y1', rigState.lElbow.y.toFixed(1));
+        lFore.setAttribute('x2', rigState.lHand.x.toFixed(1));
+        lFore.setAttribute('y2', rigState.lHand.y.toFixed(1));
+
+        rightHand.setAttribute('transform', `translate(${rigState.rHand.x.toFixed(1)}, ${rigState.rHand.y.toFixed(1)}) rotate(${rigState.rHand.rot.toFixed(1)})`);
+        leftHand.setAttribute('transform', `translate(${rigState.lHand.x.toFixed(1)}, ${rigState.lHand.y.toFixed(1)}) rotate(${rigState.lHand.rot.toFixed(1)})`);
+
+        rightHand.innerHTML = buildArticulatedHandSVG(rigState.rFingers, false);
+        leftHand.innerHTML = buildArticulatedHandSVG(rigState.lFingers, true);
+      }
+
+      if (head) {
+        head.setAttribute('transform', `translate(${rigState.headShakeX.toFixed(1)}, ${rigState.headNodY.toFixed(1)}) rotate(${rigState.headTilt.toFixed(2)} 190 96)`);
+      }
+
+      requestAnimationFrame(animateAvatarRig);
+    }
+
+    function updateASLInstructionCard(code, title, howTo) {
+      // Replaced by the Pop-Up Sign Image Box below the avatar
+    }
+
+    // ============================================================================
+    // DEDICATED TEXTBOOK / FLASHCARD LINE-ART ILLUSTRATION ENGINE
+    // Draws signs in a completely different, clean ink-and-contour dictionary style
+    // (with facial/body reference landmarks, arrows & tap bursts) instead of avatar hands!
+    // ============================================================================
+    function drawContinuousLineArtHand(fingers, badgeText) {
+      const f = fingers || fingerPresets.asl5Spread;
+      const stroke = '#1e293b';
+      const fill = '#fff1e6';
+      const shade = '#fed7aa';
+
+      // Helper to draw a smooth round-tipped organic finger path in line-art style
+      function fingerPath(bx, by, angle, len, curl, width) {
+        const effLen = curl > 0.55 ? len * 0.34 : len * (1 - curl * 0.35);
+        const r = width / 2;
+        const tipY = -effLen;
+        return `
+          <g transform="translate(${bx}, ${by}) rotate(${angle})">
+            <path d="M ${-r} 2 L ${-r} ${tipY + r} A ${r} ${r} 0 0 1 ${r} ${tipY + r} L ${r} 2 Z" fill="${fill}" stroke="${stroke}" stroke-width="2.2" stroke-linejoin="round" />
+            ${curl > 0.55
+              ? `<path d="M ${-r + 1.2} ${tipY + r + 2} Q 0 ${tipY + r + 5} ${r - 1.2} ${tipY + r + 2}" fill="none" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round" />`
+              : `<path d="M ${-r + 1.5} ${tipY + r + 1.5} A ${r - 1.5} ${r - 1.5} 0 0 1 ${r - 1.5} ${tipY + r + 1.5}" fill="#ffffff" stroke="${stroke}" stroke-width="1.1" />
+                 <line x1="${-r + 2}" y1="${tipY * 0.52}" x2="${r - 2}" y2="${tipY * 0.52}" stroke="${stroke}" stroke-width="1.2" stroke-linecap="round" opacity="0.55" />`
+            }
+          </g>
+        `;
+      }
+
+      const iCurl = f.index?.curl ?? 0;
+      const mCurl = f.middle?.curl ?? 0;
+      const rCurl = f.ring?.curl ?? 0;
+      const pCurl = f.pinky?.curl ?? 0;
+      const tCurl = f.thumb?.curl ?? 0;
+      const tAcross = f.thumb?.across ?? 0;
+
+      const iAng = -7 + (f.index?.spread ?? 0);
+      const mAng = -1 + (f.middle?.spread ?? 0);
+      const rAng = 5 + (f.ring?.spread ?? 0);
+      const pAng = 12 + (f.pinky?.spread ?? 0);
+      const tAng = tAcross ? 38 : (-38 - (f.thumb?.spread ?? 10) * 0.7 + tCurl * 55);
+
+      return `
+        <g transform="translate(68, 76)">
+          <!-- Flashcard Corner Stamp -->
+          <rect x="-58" y="-66" width="32" height="20" rx="5" fill="#4f46e5" />
+          <text x="-42" y="-52" text-anchor="middle" font-size="11" font-weight="900" fill="#ffffff">${badgeText || 'ASL'}</text>
+
+          <!-- Organic Line-Art Fingers -->
+          ${fingerPath(-14, -15, iAng, 34, iCurl, 9.5)}
+          ${fingerPath(-4.5, -17, mAng, 38, mCurl, 10)}
+          ${fingerPath(5, -16, rAng, 35, rCurl, 9.5)}
+          ${fingerPath(14, -13, pAng, 28, pCurl, 8.5)}
+
+          <!-- Continuous Contoured Palm & Wrist Silhouette -->
+          <path d="M -19 -14 C -22 2 -18 15 -12 20 L -12 28 L 13 28 L 13 20 C 20 15 21 0 19 -13 Z" fill="${fill}" stroke="${stroke}" stroke-width="2.3" stroke-linejoin="round" />
+          <!-- Subtle Palm Shading & Sketch Crease Lines -->
+          <path d="M -13 2 Q 0 9 14 3" fill="none" stroke="${stroke}" stroke-width="1.6" stroke-linecap="round" opacity="0.65" />
+          <path d="M -4 6 Q -10 12 -6 18" fill="none" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round" opacity="0.55" />
+
+          <!-- Organic Line-Art Thumb -->
+          <g transform="translate(${tAcross ? -8 : -17}, ${tAcross ? 2 : 0}) rotate(${tAng})">
+            <path d="M -5 4 L -5 -20 A 5 5 0 0 1 5 -20 L 5 4 Z" fill="${shade}" stroke="${stroke}" stroke-width="2.2" />
+            <circle cx="0" cy="-19" r="2.6" fill="#ffffff" opacity="0.8" />
+          </g>
+        </g>
+      `;
+    }
+
+    function buildCustomSignFlashcardSVG(poseKey, customCode, rightFingers) {
+      const stroke = '#1e293b';
+      const skin = '#fff1e6';
+      const skinAlt = '#fed7aa';
+      const accent = '#0d9488';
+      const indigo = '#4f46e5';
+
+      // Bespoke hand-drawn dictionary illustrations for each core ASL sign
+      const scenes = {
+        wave: `
+          <!-- Forehead / Eyebrow Temple Landmark -->
+          <path d="M 22 24 Q 42 22 46 42 Q 48 56 38 68" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-dasharray="3 3" stroke-linecap="round" />
+          <path d="M 28 38 Q 36 34 42 38" fill="none" stroke="#475569" stroke-width="2.5" stroke-linecap="round" />
+          <circle cx="35" cy="45" r="2.5" fill="#475569" />
+          <!-- Illustrated Open B/5 Salute Hand -->
+          <g transform="translate(68, 66) rotate(-18)">
+            <path d="M -14 14 L -14 -20 A 4 4 0 0 1 -6 -20 L -6 0 L -6 -25 A 4 4 0 0 1 2 -25 L 2 0 L 2 -23 A 4 4 0 0 1 10 -23 L 10 2 L 10 -17 A 3.8 3.8 0 0 1 17.5 -17 L 17.5 14 C 17.5 24 -14 24 -14 14 Z" fill="${skin}" stroke="${stroke}" stroke-width="2.2" stroke-linejoin="round" />
+            <path d="M -14 6 L -25 -6 A 4 4 0 0 1 -19 -12 L -10 0" fill="${skinAlt}" stroke="${stroke}" stroke-width="2.2" stroke-linejoin="round" />
+            <path d="M -7 8 Q 2 13 11 8" fill="none" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round" opacity="0.6" />
+          </g>
+          <!-- Outward Salute Motion Arrows -->
+          <path d="M 52 28 Q 78 16 108 26" fill="none" stroke="${accent}" stroke-width="3" stroke-linecap="round" marker-end="url(#motionArrow)" />
+          <path d="M 60 38 Q 84 28 112 36" fill="none" stroke="${indigo}" stroke-width="2" stroke-dasharray="3 3" stroke-linecap="round" />
+        `,
+        thankyou: `
+          <!-- Chin & Lower Lip Profile Landmark -->
+          <path d="M 20 26 Q 38 28 36 38 Q 42 46 32 56 Q 24 62 16 60" fill="#f1f5f9" stroke="#64748b" stroke-width="2.2" stroke-linecap="round" />
+          <!-- Flat B-Hand Touching Chin & Arcing Forward -->
+          <g transform="translate(68, 68) rotate(24)">
+            <path d="M -12 16 L -12 -22 A 4 4 0 0 1 -4 -22 L -4 -25 A 4 4 0 0 1 4 -25 L 4 -23 A 4 4 0 0 1 12 -23 L 12 -17 A 3.5 3.5 0 0 1 19 -17 L 19 16 C 19 25 -12 25 -12 16 Z" fill="${skin}" stroke="${stroke}" stroke-width="2.2" stroke-linejoin="round" />
+            <path d="M -12 5 L -20 -6 A 3.8 3.8 0 0 1 -13 -10 L -8 2" fill="${skinAlt}" stroke="${stroke}" stroke-width="2" />
+          </g>
+          <!-- Chin-to-Forward Arc Arrow -->
+          <path d="M 42 42 Q 76 42 106 72" fill="none" stroke="${accent}" stroke-width="3.2" stroke-linecap="round" marker-end="url(#motionArrow)" />
+          <circle cx="42" cy="42" r="3.5" fill="#f43f5e" />
+        `,
+        please: `
+          <!-- Chest Outline & Circular Clockwise Arrow -->
+          <path d="M 28 24 Q 70 34 112 24 L 116 96 L 24 96 Z" fill="#eef2ff" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4 3" />
+          <path d="M 46 48 A 24 24 0 1 1 44 68" fill="none" stroke="${accent}" stroke-width="3" stroke-dasharray="4 3" marker-end="url(#motionArrow)" />
+          <!-- Open Flat Hand Rubbing Chest -->
+          <g transform="translate(72, 64) rotate(-22)">
+            <path d="M -12 15 L -12 -18 A 3.8 3.8 0 0 1 -4.5 -18 L -4.5 -21 A 3.8 3.8 0 0 1 3 -21 L 3 -19 A 3.8 3.8 0 0 1 10.5 -19 L 10.5 -14 A 3.5 3.5 0 0 1 17 -14 L 17 15 C 17 23 -12 23 -12 15 Z" fill="${skin}" stroke="${stroke}" stroke-width="2.2" />
+            <path d="M -12 6 L -22 -4 A 3.8 3.8 0 0 1 -16 -9 L -9 1" fill="${skinAlt}" stroke="${stroke}" stroke-width="2" />
+          </g>
+        `,
+        help: `
+          <!-- Base Flat Upturned Left Palm -->
+          <path d="M 28 76 C 28 70 92 70 98 76 C 102 82 90 88 62 88 C 36 88 26 82 28 76 Z" fill="${skinAlt}" stroke="${stroke}" stroke-width="2.2" />
+          <!-- Dominant Vertical A-Fist with Thumb Up Resting on Palm -->
+          <g transform="translate(64, 56)">
+            <rect x="-15" y="-8" width="30" height="24" rx="9" fill="${skin}" stroke="${stroke}" stroke-width="2.2" />
+            <line x1="-10" y1="-1" x2="10" y2="-1" stroke="${stroke}" stroke-width="1.6" />
+            <line x1="-10" y1="6" x2="10" y2="6" stroke="${stroke}" stroke-width="1.6" />
+            <!-- Upright Thumb -->
+            <path d="M -15 4 L -15 -22 A 5 5 0 0 1 -5 -22 L -5 4 Z" fill="${skin}" stroke="${stroke}" stroke-width="2.2" />
+          </g>
+          <!-- Dual Upward Lift Arrows -->
+          <path d="M 24 68 L 24 28" fill="none" stroke="${accent}" stroke-width="3" stroke-linecap="round" marker-end="url(#motionArrow)" />
+          <path d="M 110 68 L 110 28" fill="none" stroke="${accent}" stroke-width="3" stroke-linecap="round" marker-end="url(#motionArrow)" />
+        `,
+        heart: `
+          <!-- Iconic Drawn ILY (I Love You) Hand + Floating Heart -->
+          <g transform="translate(70, 68)">
+            <!-- Extended Index & Pinky -->
+            <path d="M -15 -10 L -15 -40 A 4.5 4.5 0 0 1 -6 -40 L -6 -10 Z" fill="${skin}" stroke="${stroke}" stroke-width="2.2" />
+            <path d="M 10 -8 L 10 -34 A 4.2 4.2 0 0 1 18.5 -34 L 18.5 -8 Z" fill="${skin}" stroke="${stroke}" stroke-width="2.2" />
+            <!-- Palm -->
+            <rect x="-16" y="-12" width="35" height="28" rx="10" fill="${skin}" stroke="${stroke}" stroke-width="2.2" />
+            <!-- Curled Middle & Ring Fingers -->
+            <rect x="-6" y="-12" width="8" height="15" rx="4" fill="${skinAlt}" stroke="${stroke}" stroke-width="2" />
+            <rect x="2" y="-12" width="8" height="15" rx="4" fill="${skinAlt}" stroke="${stroke}" stroke-width="2" />
+            <!-- Outstretched Thumb -->
+            <path d="M -14 4 L -34 -8 A 4.5 4.5 0 0 1 -29 -16 L -10 -4 Z" fill="${skin}" stroke="${stroke}" stroke-width="2.2" />
+          </g>
+          <path d="M 106 28 C 103 22 95 22 95 29 C 95 35 106 42 106 42 C 106 42 117 35 117 29 C 117 22 109 22 106 28 Z" fill="#f43f5e" />
+        `,
+        yes: `
+          <!-- Illustrated S-Fist Nodding Up & Down at Wrist -->
+          <g transform="translate(66, 56)">
+            <rect x="-18" y="-16" width="36" height="32" rx="12" fill="${skin}" stroke="${stroke}" stroke-width="2.3" />
+            <line x1="-9" y1="-14" x2="-9" y2="2" stroke="${stroke}" stroke-width="1.6" />
+            <line x1="0" y1="-14" x2="0" y2="2" stroke="${stroke}" stroke-width="1.6" />
+            <line x1="9" y1="-14" x2="9" y2="2" stroke="${stroke}" stroke-width="1.6" />
+            <!-- Horizontal Thumb Locked Across Curled Fingers -->
+            <rect x="-16" y="-4" width="28" height="10" rx="5" fill="${skinAlt}" stroke="${stroke}" stroke-width="2.2" />
+            <path d="M -10 16 L -10 28 L 10 28 L 10 16" fill="${skin}" stroke="${stroke}" stroke-width="2.2" />
+          </g>
+          <!-- Wrist Nod Up/Down Arc -->
+          <path d="M 104 30 Q 116 54 104 78" fill="none" stroke="${accent}" stroke-width="3" stroke-linecap="round" marker-end="url(#motionArrow)" />
+        `,
+        no: `
+          <!-- Side-Profile Index & Middle Snapping Down onto Thumb -->
+          <g transform="translate(56, 62)">
+            <path d="M -24 18 L -12 -6 L 26 -18 A 4.5 4.5 0 0 1 30 -10 L 0 4 L 24 10 A 4.5 4.5 0 0 1 22 19 L -10 14 L -10 26 Z" fill="${skin}" stroke="${stroke}" stroke-width="2.3" stroke-linejoin="round" />
+            <!-- Second Finger Layer -->
+            <path d="M -8 -10 L 24 -24 A 4 4 0 0 1 28 -16 L -2 -2" fill="${skinAlt}" stroke="${stroke}" stroke-width="2" />
+          </g>
+          <!-- Pinch Contact Spark Lines -->
+          <line x1="94" y1="42" x2="104" y2="36" stroke="#f43f5e" stroke-width="2.5" stroke-linecap="round" />
+          <line x1="96" y1="54" x2="108" y2="54" stroke="#f43f5e" stroke-width="2.5" stroke-linecap="round" />
+          <line x1="94" y1="66" x2="104" y2="72" stroke="#f43f5e" stroke-width="2.5" stroke-linecap="round" />
+        `,
+        document: `
+          <!-- Dashed ID Badge Frame Between Two L-Hands -->
+          <rect x="38" y="30" width="60" height="40" rx="6" fill="#e0f2fe" stroke="#0284c7" stroke-width="2" stroke-dasharray="4 2" />
+          <text x="68" y="55" text-anchor="middle" font-size="13" font-weight="900" fill="#0369a1">ID</text>
+          <!-- Left & Right L-Shape Hands Framing the Corners -->
+          <path d="M 24 68 L 24 24 A 4 4 0 0 1 32 24 L 32 60 L 52 60 A 4 4 0 0 1 52 68 Z" fill="${skin}" stroke="${stroke}" stroke-width="2.2" stroke-linejoin="round" />
+          <path d="M 112 68 L 112 24 A 4 4 0 0 0 104 24 L 104 60 L 84 60 A 4 4 0 0 0 84 68 Z" fill="${skin}" stroke="${stroke}" stroke-width="2.2" stroke-linejoin="round" />
+        `,
+        question: `
+          <!-- Hand with Hooked X-Index Drawing a Question Mark -->
+          <g transform="translate(56, 72)">
+            <path d="M -8 -10 C -8 -30 8 -34 12 -20 C 14 -14 6 -12 4 -16" fill="none" stroke="${stroke}" stroke-width="8" stroke-linecap="round" />
+            <path d="M -8 -10 C -8 -30 8 -34 12 -20 C 14 -14 6 -12 4 -16" fill="none" stroke="${skin}" stroke-width="4.5" stroke-linecap="round" />
+            <rect x="-15" y="-12" width="30" height="24" rx="9" fill="${skin}" stroke="${stroke}" stroke-width="2.2" />
+            <rect x="-12" y="-6" width="22" height="9" rx="4.5" fill="${skinAlt}" stroke="${stroke}" stroke-width="1.8" />
+          </g>
+          <text x="102" y="54" text-anchor="middle" font-size="34" font-weight="900" fill="${indigo}">?</text>
+        `,
+        what: `
+          <!-- Two Upturned Open 5-Palms Shaking Side-to-Side -->
+          <g transform="translate(42, 62) scale(0.75)">
+            <path d="M -14 12 L -18 -18 M -6 10 L -7 -22 M 3 10 L 4 -22 M 11 12 L 15 -16 M -14 6 L -26 -2" stroke="${stroke}" stroke-width="6.5" stroke-linecap="round" />
+            <path d="M -14 12 L -18 -18 M -6 10 L -7 -22 M 3 10 L 4 -22 M 11 12 L 15 -16 M -14 6 L -26 -2" stroke="${skin}" stroke-width="3.8" stroke-linecap="round" />
+            <ellipse cx="-1" cy="10" rx="15" ry="11" fill="${skin}" stroke="${stroke}" stroke-width="2.5" />
+          </g>
+          <g transform="translate(94, 62) scale(-0.75, 0.75)">
+            <path d="M -14 12 L -18 -18 M -6 10 L -7 -22 M 3 10 L 4 -22 M 11 12 L 15 -16 M -14 6 L -26 -2" stroke="${stroke}" stroke-width="6.5" stroke-linecap="round" />
+            <path d="M -14 12 L -18 -18 M -6 10 L -7 -22 M 3 10 L 4 -22 M 11 12 L 15 -16 M -14 6 L -26 -2" stroke="${skin}" stroke-width="3.8" stroke-linecap="round" />
+            <ellipse cx="-1" cy="10" rx="15" ry="11" fill="${skin}" stroke="${stroke}" stroke-width="2.5" />
+          </g>
+          <!-- Horizontal Shake Arrow -->
+          <path d="M 30 26 L 106 26" fill="none" stroke="${accent}" stroke-width="3" stroke-linecap="round" marker-end="url(#motionArrow)" />
+        `,
+        bank: `
+          <!-- Base Open Palm + Flattened-O Hand Tapping Twice + Dollar Note -->
+          <path d="M 26 78 C 26 72 94 72 100 78 C 104 84 90 90 62 90 C 34 90 24 84 26 78 Z" fill="${skinAlt}" stroke="${stroke}" stroke-width="2.2" />
+          <g transform="translate(64, 52)">
+            <path d="M -18 4 C -18 -14 16 -14 18 0 C 18 10 -14 12 -18 4 Z" fill="${skin}" stroke="${stroke}" stroke-width="2.2" />
+            <ellipse cx="0" cy="1" rx="7" ry="4" fill="#ffffff" stroke="${stroke}" stroke-width="1.8" />
+          </g>
+          <rect x="86" y="16" width="32" height="18" rx="4" fill="#d1fae5" stroke="#059669" stroke-width="2" />
+          <text x="102" y="29" text-anchor="middle" font-size="12" font-weight="900" fill="#047857">$</text>
+          <path d="M 40 30 L 40 64" fill="none" stroke="${accent}" stroke-width="2.8" stroke-linecap="round" marker-end="url(#motionArrow)" />
+        `,
+        hospital: `
+          <!-- Base Upturned Wrist & Forearm + Dominant Fingers Tapping Radial Pulse + Medical Cross -->
+          <path d="M 22 76 L 96 76 C 108 76 112 88 96 90 L 22 90 Z" fill="${skinAlt}" stroke="${stroke}" stroke-width="2.2" />
+          <circle cx="66" cy="76" r="7" fill="#fecdd3" stroke="#e11d48" stroke-width="1.8" />
+          <!-- Dominant Hand Tapping Wrist -->
+          <path d="M 52 34 L 64 68 C 66 72 72 72 74 68 L 82 34 Z" fill="${skin}" stroke="${stroke}" stroke-width="2.2" stroke-linejoin="round" />
+          <!-- Medical Cross Badge -->
+          <g transform="translate(104, 28)">
+            <circle cx="0" cy="0" r="12" fill="#ffe4e6" stroke="#e11d48" stroke-width="1.8" />
+            <path d="M -5 0 L 5 0 M 0 -5 L 0 5" stroke="#e11d48" stroke-width="3" stroke-linecap="round" />
+          </g>
+        `,
+        name: `
+          <!-- Two Crossed H-Hands (Index & Middle Extended Sideways) Tapping in Center -->
+          <g transform="translate(52, 62) rotate(-28)">
+            <rect x="-24" y="-7" width="46" height="8" rx="4" fill="${skin}" stroke="${stroke}" stroke-width="2" />
+            <rect x="-24" y="1" width="44" height="8" rx="4" fill="${skin}" stroke="${stroke}" stroke-width="2" />
+          </g>
+          <g transform="translate(84, 54) rotate(-152)">
+            <rect x="-24" y="-7" width="46" height="8" rx="4" fill="${skinAlt}" stroke="${stroke}" stroke-width="2" />
+            <rect x="-24" y="1" width="44" height="8" rx="4" fill="${skinAlt}" stroke="${stroke}" stroke-width="2" />
+          </g>
+          <!-- Tap Starburst -->
+          <circle cx="68" cy="44" r="5" fill="#14b8a6" />
+          <path d="M 68 22 L 68 36" stroke="${accent}" stroke-width="2.8" stroke-linecap="round" />
+        `,
+        ok: `
+          <!-- Crisp Illustrated Thumbs-Up Hand + Checkmark Badge -->
+          <g transform="translate(62, 60)">
+            <path d="M -12 0 L -12 -26 A 5.5 5.5 0 0 1 -1 -26 L -1 0 Z" fill="${skin}" stroke="${stroke}" stroke-width="2.3" />
+            <rect x="-14" y="-4" width="30" height="26" rx="9" fill="${skin}" stroke="${stroke}" stroke-width="2.3" />
+            <line x1="-6" y1="3" x2="12" y2="3" stroke="${stroke}" stroke-width="1.6" />
+            <line x1="-6" y1="10" x2="12" y2="10" stroke="${stroke}" stroke-width="1.6" />
+            <line x1="-6" y1="17" x2="12" y2="17" stroke="${stroke}" stroke-width="1.6" />
+          </g>
+          <circle cx="102" cy="30" r="11" fill="#10b981" />
+          <path d="M 97 30 L 100.5 33.5 L 107.5 26.5" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+        `
+      };
+
+      const innerArt = scenes[poseKey] || drawContinuousLineArtHand(rightFingers, customCode);
+
+      return `
+        <svg viewBox="0 0 136 104" class="w-full h-full select-none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="flashcardGrid" width="14" height="14" patternUnits="userSpaceOnUse">
+              <path d="M 14 0 L 0 0 0 14" fill="none" stroke="#6366f1" stroke-width="0.5" opacity="0.14" />
+            </pattern>
+            <marker id="motionArrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4.5" markerHeight="4.5" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#0d9488" />
+            </marker>
+          </defs>
+          <rect width="136" height="104" fill="url(#flashcardGrid)" />
+          ${innerArt}
+        </svg>
+      `;
+    }
+
+    // Renders the Pop-Up ASL Flashcard with the custom line-art dictionary illustration inside the box below the avatar
+    function renderSignPopupImage(poseKey, customLabel, customCode, customSub, rightFingers, customTitle) {
+      const idlePlaceholder = document.getElementById('popupIdlePlaceholder');
+      const activeContent = document.getElementById('popupActiveContent');
+      const illust = document.getElementById('popupSignIllustration');
+      const codeEl = document.getElementById('popupHandCode');
+      const labelEl = document.getElementById('popupSignLabel');
+      const titleEl = document.getElementById('popupSignTitle');
+      const subEl = document.getElementById('popupSignSub');
+      if (!illust || !activeContent || !idlePlaceholder) return;
+
+      if (!poseKey || poseKey === 'idle') {
+        activeContent.classList.add('scale-90', 'opacity-0');
+        activeContent.classList.remove('scale-100', 'opacity-100');
+        setTimeout(() => {
+          if (activePoseKey === 'idle') {
+            activeContent.classList.add('hidden');
+            idlePlaceholder.classList.remove('hidden');
+          }
+        }, 200);
+        return;
+      }
+
+      idlePlaceholder.classList.add('hidden');
+      activeContent.classList.remove('hidden');
+
+      // Re-trigger crisp pop-up animation every time a sign is performed
+      activeContent.classList.remove('scale-100', 'opacity-100');
+      activeContent.classList.add('scale-90', 'opacity-0');
+
+      illust.innerHTML = buildCustomSignFlashcardSVG(poseKey, customCode, rightFingers);
+      if (codeEl) codeEl.textContent = customCode || 'ASL';
+      if (labelEl) labelEl.textContent = customLabel || 'ASL SIGN';
+      if (titleEl) titleEl.textContent = customTitle || 'How to perform this sign:';
+      if (subEl) subEl.textContent = customSub || '';
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          activeContent.classList.remove('scale-90', 'opacity-0');
+          activeContent.classList.add('scale-100', 'opacity-100');
+        });
+      });
+    }
+
+    function applyNonManualBrows(browMode) {
+      const browR = document.getElementById('eyebrowR');
+      const browL = document.getElementById('eyebrowL');
+      if (!browR || !browL) return;
+      if (browMode === 'raise') {
+        browR.setAttribute('d', 'M155,75 Q167,68 178,75');
+        browL.setAttribute('d', 'M202,75 Q213,68 225,75');
+      } else if (browMode === 'furrow') {
+        browR.setAttribute('d', 'M156,78 Q167,82 178,84');
+        browL.setAttribute('d', 'M202,84 Q213,82 224,78');
+      } else {
+        browR.setAttribute('d', 'M156,80 Q167,75 177,80');
+        browL.setAttribute('d', 'M203,80 Q213,75 224,80');
+      }
+    }
+
+    function setAvatarPose(poseKey) {
+      const realKey = poseKey === 'point' ? 'question' : poseKey;
+      const pose = avatarPoses[realKey] || avatarPoses.idle;
+      activePoseKey = realKey;
+
+      rigTarget.rHand = { ...pose.rHand };
+      rigTarget.rElbow = { ...pose.rElbow };
+      rigTarget.lHand = { ...pose.lHand };
+      rigTarget.lElbow = { ...pose.lElbow };
+      rigTarget.rFingers = cloneFingers(pose.rFingers);
+      rigTarget.lFingers = cloneFingers(pose.lFingers);
+      rigTarget.headTilt = pose.headTilt;
+
+      applyNonManualBrows(pose.brows || 'neutral');
+
+      const mouth = document.getElementById('avatarMouth');
+      if (mouth) mouth.setAttribute('d', pose.mouth);
+
+      const motionArrowEl = document.getElementById('aslMotionPath');
+      if (motionArrowEl) {
+        if (pose.motionPath) {
+          motionArrowEl.setAttribute('d', pose.motionPath);
+          motionArrowEl.setAttribute('opacity', '0.88');
+        } else {
+          motionArrowEl.setAttribute('opacity', '0');
+        }
+      }
+
+      updateASLInstructionCard(pose.code, pose.title, pose.howTo);
+
+      const banner = document.getElementById('signBubbleBanner');
+      const bannerEmoji = document.getElementById('signBubbleEmoji');
+      const bannerText = document.getElementById('signBubbleText');
+      const fingerBadge = document.getElementById('fingerStateBadge');
+      const centerProp = document.getElementById('centerSignProp');
+      const centerPropEmoji = document.getElementById('centerPropEmoji');
+      const badge = document.getElementById('avatarGestureBadge');
+
+      if (fingerBadge && pose.fingerDesc) {
+        fingerBadge.textContent = pose.fingerDesc;
+      }
+
+      if (banner && bannerEmoji && bannerText) {
+        if (pose.bannerText) {
+          banner.classList.remove('opacity-0', 'scale-90');
+          banner.classList.add('opacity-100', 'scale-100');
+          bannerEmoji.textContent = pose.emoji;
+          bannerText.textContent = pose.bannerText;
+        } else {
+          banner.classList.add('opacity-0', 'scale-90');
+          banner.classList.remove('opacity-100', 'scale-100');
+        }
+      }
+
+      if (centerProp && centerPropEmoji) {
+        if (pose.showProp) {
+          centerProp.setAttribute('opacity', '1');
+          centerProp.setAttribute('transform', 'translate(190, 152) scale(1)');
+          centerPropEmoji.textContent = pose.code || pose.emoji;
+        } else {
+          centerProp.setAttribute('opacity', '0');
+          centerProp.setAttribute('transform', 'translate(190, 168) scale(0.7)');
+        }
+      }
+
+      if (badge) badge.textContent = pose.name;
+
+      // Trigger the Pop-Up Visual Sign Reference Card + Explanation beneath the image
+      renderSignPopupImage(
+        realKey,
+        pose.bannerText || pose.name,
+        pose.code,
+        pose.howTo,
+        pose.rFingers,
+        pose.title
+      );
+    }
+
+    // ============================================================================
+    // 3B. COMPLETE 26-LETTER ASL FINGERSPELLING ALPHABET (A–Z)
+    // ============================================================================
+    const aslAlphabetCatalog = {
+      A: { preset: 'aslAFist',  rot: -4,   desc: 'ASL Letter "A": Closed fist with thumb resting upright along the side of the index finger.' },
+      B: { preset: 'aslBFlat',  rot: -4,   desc: 'ASL Letter "B": All 4 fingers extended straight and together; thumb folded across the palm.' },
+      C: { preset: 'aslCShape', rot: -12,  desc: 'ASL Letter "C": Thumb and all four fingers curved into a clear "C" arc.' },
+      D: { preset: 'aslDIndex', rot: -4,   desc: 'ASL Letter "D": Index finger points straight up while Thumb touches Middle, Ring, and Pinky tips.' },
+      E: { preset: 'aslEShape', rot: -4,   desc: 'ASL Letter "E": All four fingers curl tightly at PIP/DIP joints resting on the horizontal thumb.' },
+      F: { preset: 'aslFShape', rot: -4,   desc: 'ASL Letter "F": Index and Thumb touch in a circle while Middle, Ring, and Pinky stand straight up.' },
+      G: { preset: 'aslGShape', rot: 72,   desc: 'ASL Letter "G": Index and Thumb extend parallel pointing sideways.' },
+      H: { preset: 'aslUShape', rot: 72,   desc: 'ASL Letter "H": Index and Middle fingers extend together pointing sideways horizontally.' },
+      I: { preset: 'aslIShape', rot: -4,   desc: 'ASL Letter "I": Pinky finger extended straight up; Index, Middle, Ring, and Thumb folded.' },
+      J: { preset: 'aslIShape', rot: -18,  motion: 'asl_letter_j', desc: 'ASL Letter "J": Pinky finger extended and swoops downward in a "J" hook motion.' },
+      K: { preset: 'aslKShape', rot: -4,   desc: 'ASL Letter "K": Index up, Middle angled forward, and Thumb tip wedged between their base.' },
+      L: { preset: 'aslLShape', rot: -4,   desc: 'ASL Letter "L": Index finger points straight up and Thumb extends out at a crisp 90° angle.' },
+      M: { preset: 'aslMShape', rot: -4,   desc: 'ASL Letter "M": Thumb tucked across palm underneath curled Index, Middle, and Ring fingers.' },
+      N: { preset: 'aslNShape', rot: -4,   desc: 'ASL Letter "N": Thumb tucked across palm underneath curled Index and Middle fingers.' },
+      O: { preset: 'aslOShape', rot: -8,   desc: 'ASL Letter "O": All four curved fingertips meet the tip of the thumb to form a round "O".' },
+      P: { preset: 'aslKShape', rot: 135,  desc: 'ASL Letter "P": An upside-down "K" handshape with wrist angled downward.' },
+      Q: { preset: 'aslGShape', rot: 145,  desc: 'ASL Letter "Q": An upside-down "G" handshape with Index and Thumb pointing downward.' },
+      R: { preset: 'aslRShape', rot: -4,   desc: 'ASL Letter "R": Index and Middle fingers crossed over each other; Ring and Pinky folded.' },
+      S: { preset: 'aslSFist',  rot: -4,   desc: 'ASL Letter "S": Closed fist with the thumb locked horizontally across the curled fingers.' },
+      T: { preset: 'aslTShape', rot: -4,   desc: 'ASL Letter "T": Closed fist with the thumb tucked up between the Index and Middle fingers.' },
+      U: { preset: 'aslUShape', rot: -4,   desc: 'ASL Letter "U": Index and Middle fingers extended straight up together side-by-side.' },
+      V: { preset: 'aslVShape', rot: -4,   desc: 'ASL Letter "V": Index and Middle fingers extended and spread apart in a crisp "V".' },
+      W: { preset: 'aslWShape', rot: -4,   desc: 'ASL Letter "W": Index, Middle, and Ring fingers extended and spread into a "W".' },
+      X: { preset: 'aslXHook',  rot: -4,   desc: 'ASL Letter "X": Index finger raised and flexed at the PIP/DIP knuckles into a hook.' },
+      Y: { preset: 'aslYShape', rot: -4,   desc: 'ASL Letter "Y": Thumb and Pinky extended wide out while Index, Middle, and Ring curl into palm.' },
+      Z: { preset: 'aslDIndex', rot: -4,   motion: 'asl_letter_z', desc: 'ASL Letter "Z": Index finger extended and traces a "Z" pattern in the air.' }
+    };
+
+    function renderASLAlphabetButtons() {
+      const container = document.getElementById('aslAlphabetButtons');
+      if (!container) return;
+      container.innerHTML = '';
+      Object.keys(aslAlphabetCatalog).forEach(letter => {
+        const btn = document.createElement('button');
+        btn.className = 'w-7 h-7 rounded-lg bg-white dark:bg-indigo-950 hover:bg-indigo-600 hover:text-white border border-indigo-200 dark:border-indigo-700 text-xs font-black transition shadow-sm';
+        btn.textContent = letter;
+        btn.onclick = () => setASLLetter(letter);
+        container.appendChild(btn);
+      });
+    }
+
+    function setASLLetter(letter) {
+      const upper = letter.toUpperCase();
+      const entry = aslAlphabetCatalog[upper] || aslAlphabetCatalog.A;
+      const handPreset = fingerPresets[entry.preset] || fingerPresets.aslAFist;
+
+      activePoseKey = entry.motion || 'asl_letter';
+      rigTarget.rHand = { x: 134, y: 168, rot: entry.rot || -4 };
+      rigTarget.rElbow = { x: 92, y: 214 };
+      rigTarget.lHand = { x: 264, y: 246, rot: 10 };
+      rigTarget.lElbow = { x: 290, y: 226 };
+      rigTarget.rFingers = cloneFingers(handPreset);
+      rigTarget.lFingers = cloneFingers(fingerPresets.relaxed);
+      rigTarget.headTilt = -2;
+      applyNonManualBrows('neutral');
+
+      const motionArrowEl = document.getElementById('aslMotionPath');
+      if (motionArrowEl) motionArrowEl.setAttribute('opacity', '0');
+
+      const banner = document.getElementById('signBubbleBanner');
+      banner.classList.remove('opacity-0', 'scale-90');
+      banner.classList.add('opacity-100', 'scale-100');
+      document.getElementById('signBubbleEmoji').textContent = '🔤';
+      document.getElementById('signBubbleText').textContent = `ASL Letter "${upper}"`;
+
+      const centerProp = document.getElementById('centerSignProp');
+      const centerPropEmoji = document.getElementById('centerPropEmoji');
+      centerProp.setAttribute('opacity', '1');
+      centerProp.setAttribute('transform', 'translate(190, 152) scale(1)');
+      centerPropEmoji.textContent = `"${upper}"`;
+
+      document.getElementById('fingerStateBadge').textContent = `🔤 ASL Handshape: Letter "${upper}"`;
+      document.getElementById('avatarGestureBadge').textContent = `🔤 ASL Letter: ${upper}`;
+      updateASLInstructionCard(`"${upper}"`, `ASL Fingerspelling Letter "${upper}"`, entry.desc);
+
+      // Show Pop-up Reference Image + Detailed Explanation beneath the image for this ASL Letter
+      renderSignPopupImage(
+        `letter_${upper}`,
+        `Letter "${upper}"`,
+        `ASL [${upper}]`,
+        entry.desc,
+        handPreset,
+        `ASL Fingerspelling Letter "${upper}"`
+      );
+    }
+
+    function fingerspellWord(word) {
+      if (avatarAnimationTimer) clearInterval(avatarAnimationTimer);
+      const letters = word.toUpperCase().replace(/[^A-Z]/g, '').split('');
+      if (!letters.length) return;
+
+      let i = 0;
+      const stepTime = isSlowMotion ? 1050 : 620;
+      const runLetter = () => {
+        if (i >= letters.length) {
+          clearInterval(avatarAnimationTimer);
+          return;
+        }
+        const ch = letters[i];
+        setASLLetter(ch);
+        document.getElementById('signBubbleText').textContent = `Fingerspelling "${word}": [${ch}] (${i + 1}/${letters.length})`;
+        i++;
+      };
+      runLetter();
+      avatarAnimationTimer = setInterval(runLetter, stepTime);
+    }
+
+    function toggleHandZoom() {
+      const svg = document.getElementById('cuteSignAvatar');
+      const btnText = document.getElementById('zoomHandsText');
+      isZoomedHands = !isZoomedHands;
+
+      if (isZoomedHands) {
+        svg.setAttribute('viewBox', '65 95 250 185');
+        btnText.textContent = 'Full View';
+        showToast('Zoomed in on ASL hands & finger joints 🔍', '🖐️');
+      } else {
+        svg.setAttribute('viewBox', '0 0 380 340');
+        btnText.textContent = 'Zoom Hands';
+      }
+    }
+
+    function playFingerCountDemo() {
+      if (avatarAnimationTimer) clearInterval(avatarAnimationTimer);
+      activePoseKey = 'counting';
+
+      rigTarget.rHand = { x: 132, y: 174, rot: -6 };
+      rigTarget.rElbow = { x: 92, y: 214 };
+      rigTarget.lHand = { x: 252, y: 174, rot: 6 };
+      rigTarget.lElbow = { x: 288, y: 214 };
+
+      const countSteps = [
+        { num: '1', desc: '🔢 ASL Number 1: Index extended straight up', fingers: ['index'] },
+        { num: '2', desc: '🔢 ASL Number 2: Index & Middle extended in V', fingers: ['index', 'middle'] },
+        { num: '3', desc: '🔢 ASL Number 3: Thumb, Index & Middle extended (authentic ASL 3)', fingers: ['thumb', 'index', 'middle'] },
+        { num: '4', desc: '🔢 ASL Number 4: Four fingers extended, Thumb tucked across palm', fingers: ['index', 'middle', 'ring', 'pinky'] },
+        { num: '5', desc: '🔢 ASL Number 5: All 5 fingers spread wide', fingers: ['thumb', 'index', 'middle', 'ring', 'pinky'] }
+      ];
+
+      let idx = 0;
+      const runCountStep = () => {
+        if (idx >= countSteps.length) {
+          clearInterval(avatarAnimationTimer);
+          return;
+        }
+        const stepInfo = countSteps[idx];
+        rigTarget.rFingers.mode = 'palmar';
+        rigTarget.lFingers.mode = 'palmar';
+        for (const f of ['thumb', 'index', 'middle', 'ring', 'pinky']) {
+          const isExtended = stepInfo.fingers.includes(f);
+          rigTarget.rFingers[f].curl = isExtended ? 0.0 : 0.96;
+          rigTarget.rFingers[f].spread = isExtended ? (f === 'thumb' ? 24 : (f === 'index' ? -10 : (f === 'pinky' ? 14 : 2))) : (f === 'thumb' ? -16 : 0);
+          rigTarget.rFingers[f].across = (!isExtended && f === 'thumb') ? 1 : 0;
+          rigTarget.lFingers[f].curl = rigTarget.rFingers[f].curl;
+          rigTarget.lFingers[f].spread = rigTarget.rFingers[f].spread;
+          rigTarget.lFingers[f].across = rigTarget.rFingers[f].across;
+        }
+
+        document.getElementById('fingerStateBadge').textContent = stepInfo.desc;
+        document.getElementById('avatarGestureBadge').textContent = `🖐️ ASL Count: ${stepInfo.num}`;
+        const banner = document.getElementById('signBubbleBanner');
+        banner.classList.remove('opacity-0', 'scale-90');
+        banner.classList.add('opacity-100', 'scale-100');
+        document.getElementById('signBubbleEmoji').textContent = '🖐️';
+        document.getElementById('signBubbleText').textContent = stepInfo.desc;
+        updateASLInstructionCard(`#${stepInfo.num}`, `ASL Number ${stepInfo.num}`, stepInfo.desc);
+
+        renderSignPopupImage(
+          `num_${stepInfo.num}`,
+          `ASL Number ${stepInfo.num}`,
+          `#${stepInfo.num}`,
+          stepInfo.desc.replace('🔢 ', ''),
+          rigTarget.rFingers,
+          `How to sign ASL Number ${stepInfo.num}:`
+        );
+        idx++;
+      };
+
+      runCountStep();
+      avatarAnimationTimer = setInterval(runCountStep, 800);
+    }
+
+    function setAvatarTheme(theme) {
+      const stop1 = document.getElementById('shirtStop1');
+      const stop2 = document.getElementById('shirtStop2');
+      const fStop1 = document.getElementById('forearmStop1');
+      const fStop2 = document.getElementById('forearmStop2');
+      if (theme === 'teal') {
+        stop1.setAttribute('stop-color', '#0f766e');
+        stop2.setAttribute('stop-color', '#115e59');
+        fStop1.setAttribute('stop-color', '#0d9488');
+        fStop2.setAttribute('stop-color', '#0f766e');
+      } else if (theme === 'rose') {
+        stop1.setAttribute('stop-color', '#be123c');
+        stop2.setAttribute('stop-color', '#881337');
+        fStop1.setAttribute('stop-color', '#e11d48');
+        fStop2.setAttribute('stop-color', '#9f1239');
+      } else if (theme === 'amber') {
+        stop1.setAttribute('stop-color', '#1e293b');
+        stop2.setAttribute('stop-color', '#0f172a');
+        fStop1.setAttribute('stop-color', '#334155');
+        fStop2.setAttribute('stop-color', '#1e293b');
+      } else {
+        stop1.setAttribute('stop-color', '#3730a3');
+        stop2.setAttribute('stop-color', '#1e1b4b');
+        fStop1.setAttribute('stop-color', '#4338ca');
+        fStop2.setAttribute('stop-color', '#312e81');
+      }
+      showToast('Interpreter jacket color updated!', '🎨');
+    }
+
+    // Maps English words to exact ASL signs (or returns null so unknown words/names can be fingerspelled!)
+    function mapWordToPose(word) {
+      const clean = word.replace(/[^a-zA-Z]/g, '').toLowerCase();
+      if (!clean) return 'welcome';
+
+      if (/^(hello|hi|hey|greetings)$/.test(clean)) return 'wave';
+      if (/^(welcome|invite|come)$/.test(clean)) return 'welcome';
+      if (/^(please)$/.test(clean)) return 'please';
+      if (/^(help|assist|assistance|support|service|can)$/.test(clean)) return 'help';
+      if (/^(thank|thanks|appreciate)$/.test(clean)) return 'thankyou';
+      if (/^(love|ily)$/.test(clean)) return 'heart';
+      if (/^(yes|sure|agree|ready|done|ok|okay|good)$/.test(clean)) return 'yes';
+      if (/^(no|not|dont|never)$/.test(clean)) return 'no';
+      if (/^(id|card|document|documents|paper|papers|show|license)$/.test(clean)) return 'document';
+      if (/^(bank|money|account|pay|payment|balance|financial|transfer)$/.test(clean)) return 'bank';
+      if (/^(doctor|hospital|medical|nurse|pain|appointment|health)$/.test(clean)) return 'hospital';
+      if (/^(name|called)$/.test(clean)) return 'name';
+      if (/^(what|where|who|why|which)$/.test(clean)) return 'what';
+      if (/^(how|when|question|ask|today|now|you|your|is|the|will|and)$/.test(clean)) return 'question';
+
+      return null; // Triggers automatic ASL fingerspelling for custom names/words
+    }
+
+    function useEmployeePreset(sentence) {
+      document.getElementById('employeeInput').value = sentence;
+      translateEmployeeToSign();
+    }
+
+    function translateEmployeeToSign() {
+      const input = document.getElementById('employeeInput');
+      const text = input.value.trim();
+
+      if (!text) {
+        showToast('Please enter an English sentence first!', '✍️');
+        return;
+      }
+
+      if (avatarAnimationTimer) {
+        clearInterval(avatarAnimationTimer);
+      }
+
+      const words = text.split(/\s+/);
+      const subtitleContainer = document.getElementById('avatarSubtitleOutput');
+      const progress = document.getElementById('signSequenceProgress');
+
+      subtitleContainer.innerHTML = '';
+      words.forEach((word, idx) => {
+        const span = document.createElement('span');
+        span.id = `sign-word-${idx}`;
+        span.className = 'px-2.5 py-1 rounded-xl transition-all duration-200 theme-text-muted';
+        span.textContent = word;
+        subtitleContainer.appendChild(span);
+      });
+
+      let step = 0;
+      const stepDuration = isSlowMotion ? 1650 : 1050;
+
+      const runStep = () => {
+        words.forEach((_, idx) => {
+          const el = document.getElementById(`sign-word-${idx}`);
+          if (el) el.className = 'px-2.5 py-1 rounded-xl transition-all duration-200 theme-text-muted';
+        });
+
+        if (step >= words.length) {
+          clearInterval(avatarAnimationTimer);
+          setAvatarPose('idle');
+          progress.textContent = 'ASL Translation Complete ✓';
+          return;
+        }
+
+        const currentWord = words[step];
+        const activeEl = document.getElementById(`sign-word-${step}`);
+        if (activeEl) {
+          activeEl.className = 'px-3 py-1 rounded-xl bg-indigo-600 text-white font-extrabold shadow-sm scale-105';
+        }
+
+        const poseKey = mapWordToPose(currentWord);
+        if (poseKey) {
+          setAvatarPose(poseKey);
+          progress.textContent = `ASL Sign ${step + 1} of ${words.length}: "${currentWord.toUpperCase()}"`;
+        } else {
+          // Fingerspell first letter clearly if custom proper noun/unlisted word
+          const firstLetter = currentWord.replace(/[^a-zA-Z]/g, '').charAt(0).toUpperCase() || 'A';
+          setASLLetter(firstLetter);
+          progress.textContent = `ASL Fingerspelling "${currentWord.toUpperCase()}" (${step + 1}/${words.length})`;
+        }
+        step++;
+      };
+
+      runStep();
+      avatarAnimationTimer = setInterval(runStep, stepDuration);
+    }
+
+    // ============================================================================
+    // 4. EMPLOYEE VOICE RECOGNITION (Pure English en-US)
+    // ============================================================================
+    function startEmployeeVoiceRecognition() {
+      const micBtnText = document.getElementById('micBtnText');
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      if (!SpeechRecognition) {
+        const fallbackPhrases = [
+          'Hello, how can I help you today please?',
+          'What is your name? Please show your ID card',
+          'Yes, your bank account and money transfer are ready!',
+          'The doctor will help you now, thank you!'
+        ];
+        const randomPhrase = fallbackPhrases[Math.floor(Math.random() * fallbackPhrases.length)];
+        micBtnText.textContent = 'Listening...';
+        setTimeout(() => {
+          micBtnText.textContent = 'Speak English (تحدّث)';
+          document.getElementById('employeeInput').value = randomPhrase;
+          translateEmployeeToSign();
+          showToast('Voice captured and translated into ASL!', '🎤');
+        }, 850);
+        return;
+      }
+
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+
+      recognition.onstart = () => {
+        micBtnText.textContent = 'Listening (en-US)... 🔴';
+        showToast('Speak in English now...', '🎙️');
+      };
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById('employeeInput').value = transcript;
+        translateEmployeeToSign();
+      };
+
+      recognition.onerror = () => {
+        document.getElementById('employeeInput').value = 'Hello, how can I help you today please?';
+        translateEmployeeToSign();
+      };
+
+      recognition.onend = () => {
+        micBtnText.textContent = 'Speak English (تحدّث)';
+      };
+
+      recognition.start();
+    }
+
+    // Expose all interactive functions on window
+    window.toggleThemeMode = toggleThemeMode;
+    window.toggleCamera = toggleCamera;
+    window.captureCurrentSign = captureCurrentSign;
+    window.triggerDeafSign = triggerDeafSign;
+    window.speakDeafOutput = speakDeafOutput;
+    window.selectLocationContext = selectLocationContext;
+    window.setAvatarPose = setAvatarPose;
+    window.setASLLetter = setASLLetter;
+    window.fingerspellWord = fingerspellWord;
+    window.toggleSlowMotion = toggleSlowMotion;
+    window.toggleHandZoom = toggleHandZoom;
+    window.playFingerCountDemo = playFingerCountDemo;
+    window.setAvatarTheme = setAvatarTheme;
+    window.useEmployeePreset = useEmployeePreset;
+    window.translateEmployeeToSign = translateEmployeeToSign;
+    window.startEmployeeVoiceRecognition = startEmployeeVoiceRecognition;
+
+    // Initialize 26-Letter ASL Bar, Blinking & 60FPS Rig
+    window.onload = function () {
+      renderASLAlphabetButtons();
+      requestAnimationFrame(animateAvatarRig);
+
+      setInterval(() => {
+        const eyes = document.getElementById('avatarEyes');
+        if (eyes) {
+          eyes.style.transformOrigin = '190px 95px';
+          eyes.style.transform = 'scaleY(0.1)';
+          setTimeout(() => {
+            eyes.style.transform = 'scaleY(1)';
+          }, 140);
+        }
+      }, 4000);
+    };
+  </script>
+</body>
+</html>
